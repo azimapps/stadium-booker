@@ -12,9 +12,9 @@ const Footer = () => {
             <img src={logo} alt="Stadion 24/7" className="w-10 h-10 rounded-lg object-contain" />
             <span className="font-semibold text-lg text-background">Stadion 24/7</span>
           </div>
-          
+
           <p className="text-background/60 text-sm">
-            © 2024 StadionBook. {t('footer.rights')}
+            © 2024 Stadion 24/7. {t('footer.rights')}
           </p>
         </div>
       </div>
