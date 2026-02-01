@@ -7,15 +7,13 @@ import Footer from '@/components/Footer';
 
 const Index = () => {
   return (
-    <LanguageProvider>
-      <div className="min-h-screen">
-        <Header />
-        <Hero />
-        <StadiumsSection />
-        <FeaturesSection />
-        <Footer />
-      </div>
-    </LanguageProvider>
+    <div className="min-h-screen">
+      <Header />
+      <Hero />
+      <StadiumsSection />
+      <FeaturesSection />
+      <Footer />
+    </div>
   );
 };
 

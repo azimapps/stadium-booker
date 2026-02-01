@@ -1,38 +1,18 @@
+import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import StadiumCard from './StadiumCard';
-import stadium1 from '@/assets/stadium-1.jpg';
-import stadium2 from '@/assets/stadium-2.jpg';
-import stadium3 from '@/assets/stadium-3.jpg';
-
-const stadiums = [
-  {
-    id: 1,
-    image: stadium1,
-    nameKey: 'stadium.central.name',
-    locationKey: 'stadium.central.location',
-    price: 300000,
-    capacity: 22,
-  },
-  {
-    id: 2,
-    image: stadium2,
-    nameKey: 'stadium.indoor.name',
-    locationKey: 'stadium.indoor.location',
-    price: 200000,
-    capacity: 12,
-  },
-  {
-    id: 3,
-    image: stadium3,
-    nameKey: 'stadium.mini.name',
-    locationKey: 'stadium.mini.location',
-    price: 150000,
-    capacity: 10,
-  },
-];
+import { fetchStadiums, Stadium } from '@/services/api';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 
 const StadiumsSection = () => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+  const { data: stadiums, isLoading, error } = useQuery<Stadium[]>({
+    queryKey: ['home-stadiums'],
+    queryFn: () => fetchStadiums(3),
+  });
 
   return (
     <section id="stadiums" className="py-20 bg-background">
@@ -46,18 +26,47 @@ const StadiumsSection = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {stadiums.map((stadium) => (
-            <StadiumCard
-              key={stadium.id}
-              image={stadium.image}
-              nameKey={stadium.nameKey}
-              locationKey={stadium.locationKey}
-              price={stadium.price}
-              capacity={stadium.capacity}
-            />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="space-y-4">
+                <Skeleton className="h-48 w-full rounded-xl" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-10">
+            <p className="text-destructive">Error loading stadiums.</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {stadiums?.map((stadium) => (
+                <StadiumCard
+                  key={stadium.id}
+                  id={stadium.id}
+                  image={stadium.main_image}
+                  images={stadium.images}
+                  name={language === 'uz' ? stadium.name_uz : stadium.name_ru}
+                  location={language === 'uz' ? stadium.address_uz : stadium.address_ru}
+                  price={stadium.price_per_hour}
+                  capacity={stadium.capacity}
+                />
+              ))}
+            </div>
+
+            <div className="mt-12 text-center">
+              <Link to="/stadiums">
+                <Button variant="outline" size="lg" className="gap-2">
+                  {t('nav.stadiums')}
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+          </>
+        )}
       </div>
     </section>
   );
