@@ -67,6 +67,12 @@ export const translations: Translations = {
   'booking.success': { uz: 'Muvaffaqiyatli band qilindi!', ru: 'Успешно забронировано!' },
   'booking.error': { uz: 'Xatolik yuz berdi', ru: 'Произошла ошибка' },
   'booking.phone': { uz: 'Telefon raqamingiz', ru: 'Ваш номер телефона' },
+  'nav.tournaments': { uz: 'Turnirlar', ru: 'Турниры' },
+  'tournaments.title': { uz: 'Faol turnirlar', ru: 'Активные турниры' },
+  'tournaments.subtitle': { uz: 'Eng yaxshi turnirlarda ishtirok eting va g\'olib bo\'ling', ru: 'Участвуйте в лучших турнирах и побеждайте' },
+  'tournaments.entrance_fee': { uz: 'Ishtirok to\'lovi', ru: 'Взнос за участие' },
+  'tournaments.start_date': { uz: 'Boshlanish vaqti', ru: 'Время начала' },
+  'tournaments.free': { uz: 'Bepul', ru: 'Бесплатно' },
 };
 
 interface LanguageContextType {

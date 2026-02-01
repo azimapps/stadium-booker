@@ -34,6 +34,7 @@ const Header = () => {
           {[
             { name: t('nav.home'), to: '/' },
             { name: t('nav.stadiums'), to: '/stadiums', onClick: handleStadiumsClick },
+            { name: t('nav.tournaments'), to: '/tournaments' },
             { name: t('nav.about'), to: '#features', href: true }
           ].map((link, i) => (
             link.href ? (
