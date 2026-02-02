@@ -2,9 +2,12 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import logo from '@/assets/logo.png';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 
 const Header = () => {
   const { t } = useLanguage();
+  const { isAuthenticated, user, logout } = useAuth();
   const location = useLocation();
 
   const handleStadiumsClick = (e: React.MouseEvent) => {
@@ -62,6 +65,26 @@ const Header = () => {
 
         <div className="flex items-center gap-4">
           <LanguageSwitcher />
+          {isAuthenticated ? (
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium hidden md:block">
+                {user?.fullname || user?.phone}
+              </span>
+              <Button
+                onClick={logout}
+                variant="ghost"
+                className="text-muted-foreground hover:text-destructive"
+              >
+                Chiqish
+              </Button>
+            </div>
+          ) : (
+            <Link to="/auth">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20">
+                Kirish
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </header>

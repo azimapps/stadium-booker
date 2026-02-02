@@ -7,12 +7,26 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+
 const StadiumsSection = () => {
   const { language, t } = useLanguage();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
   const { data: stadiums, isLoading, error } = useQuery<Stadium[]>({
     queryKey: ['home-stadiums'],
     queryFn: () => fetchStadiums(3),
   });
+
+  const handleStadiumClick = () => {
+    if (isAuthenticated) {
+      navigate('/stadiums');
+    } else {
+      navigate('/auth', { state: { from: { pathname: '/stadiums' } } });
+    }
+  };
 
   return (
     <section id="stadiums" className="py-20 bg-background">
@@ -58,12 +72,15 @@ const StadiumsSection = () => {
             </div>
 
             <div className="mt-12 text-center">
-              <Link to="/stadiums">
-                <Button variant="outline" size="lg" className="gap-2">
-                  {t('nav.stadiums')}
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
+              <Button
+                variant="outline"
+                size="lg"
+                className="gap-2"
+                onClick={handleStadiumClick}
+              >
+                {t('nav.stadiums')}
+                <ArrowRight className="w-4 h-4" />
+              </Button>
             </div>
           </>
         )}

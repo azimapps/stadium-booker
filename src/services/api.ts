@@ -140,3 +140,36 @@ export const fetchTournaments = async (): Promise<Tournament[]> => {
         });
     }
 };
+
+export const sendOtp = async (phone: string) => {
+    const response = await fetch(`${BASE_URL}/users/send-otp`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to send OTP');
+    }
+
+    return response.json();
+};
+
+export const verifyOtp = async (phone: string, otp_code: string) => {
+    const response = await fetch(`${BASE_URL}/users/verify-otp`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone, otp_code }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Failed to verify OTP');
+    }
+
+    return response.json();
+};
