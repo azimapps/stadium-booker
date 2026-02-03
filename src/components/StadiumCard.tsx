@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { MapPin, Users, ArrowDown } from 'lucide-react';
@@ -18,6 +19,7 @@ interface StadiumCardProps {
 
 const StadiumCard = ({ id, image, images = [], nameKey, locationKey, name, location, price, capacity }: StadiumCardProps) => {
   const { t } = useLanguage();
+  const { isAuthenticated } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -40,7 +42,11 @@ const StadiumCard = ({ id, image, images = [], nameKey, locationKey, name, locat
   const displayLocation = location || (locationKey ? t(locationKey) : '');
 
   return (
-    <Link to={`/stadiums/${id}`} className="block group">
+    <Link
+      to={isAuthenticated ? `/stadiums/${id}` : '/auth'}
+      state={isAuthenticated ? undefined : { from: { pathname: `/stadiums/${id}` } }}
+      className="block group"
+    >
       <Card
         className="relative h-full overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2 group"
         onMouseEnter={() => setIsHovered(true)}

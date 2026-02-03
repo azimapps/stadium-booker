@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from '@/components/ui/label';
 import { ArrowRight, Loader2, Phone, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import heroImage from '@/assets/hero-stadium.jpg';
 
 const Auth = () => {
     const { t } = useLanguage();
@@ -114,7 +115,10 @@ const Auth = () => {
                 <div className="absolute -top-[30%] -left-[10%] w-[70%] h-[70%] rounded-full bg-blue-600/20 blur-[120px]" />
                 <div className="absolute top-[20%] -right-[10%] w-[60%] h-[60%] rounded-full bg-emerald-500/10 blur-[100px]" />
                 <div className="absolute -bottom-[20%] left-[20%] w-[50%] h-[50%] rounded-full bg-purple-500/20 blur-[120px]" />
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1522770179533-24471fcdba45?q=80&w=2560&auto=format&fit=crop')] bg-cover bg-center opacity-10" />
+                <div
+                    className="absolute inset-0 bg-cover bg-center opacity-20"
+                    style={{ backgroundImage: `url(${heroImage})` }}
+                />
             </div>
 
             <div className="relative z-10 w-full max-w-md px-4">

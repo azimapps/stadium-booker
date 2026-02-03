@@ -4,6 +4,17 @@ import logo from '@/assets/logo.png';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const Header = () => {
   const { t } = useLanguage();
@@ -70,13 +81,30 @@ const Header = () => {
               <span className="text-sm font-medium hidden md:block">
                 {user?.fullname || user?.phone}
               </span>
-              <Button
-                onClick={logout}
-                variant="ghost"
-                className="text-muted-foreground hover:text-destructive"
-              >
-                Chiqish
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="text-muted-foreground hover:text-destructive"
+                  >
+                    Chiqish
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Tizimdan chiqish</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Haqiqatan ham tizimdan chiqmoqchimisiz?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Yo'q</AlertDialogCancel>
+                    <AlertDialogAction onClick={logout} className="bg-destructive hover:bg-destructive/90">
+                      Ha, chiqish
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           ) : (
             <Link to="/auth">
