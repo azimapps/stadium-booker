@@ -3,11 +3,14 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Home, Calendar, PlaySquare, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { useAuth } from "@/contexts/AuthContext";
+
 const MobileNav = () => {
     const { t } = useLanguage();
     const location = useLocation();
+    const { isAuthenticated } = useAuth();
 
-    if (location.pathname === "/auth") {
+    if (!isAuthenticated || location.pathname === "/auth") {
         return null;
     }
 
