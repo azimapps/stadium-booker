@@ -15,6 +15,8 @@ export const translations: Translations = {
   'nav.stadiums': { uz: 'Maydonlar', ru: 'Стадионы' },
   'nav.about': { uz: 'Loyiha haqida', ru: 'О проекте' },
   'nav.contact': { uz: 'Bog\'lanish', ru: 'Контакты' },
+  'nav.orders': { uz: 'Buyurtmalar', ru: 'Заказы' },
+  'nav.media': { uz: 'Media', ru: 'Медиа' },
 
   // Hero
   'hero.title': { uz: 'Futbol maydonlarini onlayn band qiling', ru: 'Бронируйте футбольные поля онлайн' },
