@@ -173,3 +173,102 @@ export const verifyOtp = async (phone: string, otp_code: string) => {
 
     return response.json();
 };
+
+export const getProfile = async (token: string, role: 'manager' | 'user') => {
+    const endpoint = role === 'manager' ? 'managers' : 'users';
+    const response = await fetch(`${BASE_URL}/${endpoint}/me`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (response.status === 401) {
+        throw new Error('UNAUTHORIZED');
+    }
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch profile');
+    }
+
+    return response.json();
+};
+
+export const updateProfile = async (token: string, role: 'manager' | 'user', data: any) => {
+    const endpoint = role === 'manager' ? 'managers' : 'users';
+    const response = await fetch(`${BASE_URL}/${endpoint}/me`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    });
+
+    if (response.status === 401) {
+        throw new Error('UNAUTHORIZED');
+    }
+
+    if (!response.ok) {
+        throw new Error('Failed to update profile');
+    }
+
+    return response.json();
+};
+
+export const uploadAvatar = async (token: string, role: 'manager' | 'user', file: File) => {
+    const endpoint = role === 'manager' ? 'managers' : 'users';
+
+    // Note: Managers API currently doesn't document an avatar upload endpoint in the provided snippet,
+    // but assuming it follows the User pattern or might be added later. 
+    // If the API docs strictly say only Users have avatar upload, we should handle that.
+    // Based on the provided docs, ONLY USERS have /me/avatar. 
+    // But let's keep it generic if possible, or restrict if strictly followed.
+    // The doc says "User Profile" -> Upload Avatar. "Manager Profile" -> Update Profile (name only).
+    // So if role is manager, this might fail or not exist. I'll add a check or let the backend reject it.
+
+    if (role === 'manager') {
+        console.warn("Avatar upload might not be supported for managers based on current docs.");
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${BASE_URL}/${endpoint}/me/avatar`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
+            // Explicitly do NOT set Content-Type here so browser sets it with boundary
+        },
+        body: formData
+    });
+
+    if (response.status === 401) {
+        throw new Error('AVATAR_UPLOAD_UNAUTHORIZED');
+    }
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Failed to upload avatar'); // Return backend error message if available
+    }
+
+    return response.json();
+};
+
+export const deleteAccount = async (token: string, role: 'manager' | 'user') => {
+    const endpoint = role === 'manager' ? 'managers' : 'users';
+    const response = await fetch(`${BASE_URL}/${endpoint}/me`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (response.status === 401) {
+        throw new Error('UNAUTHORIZED');
+    }
+
+    if (!response.ok) {
+        throw new Error('Failed to delete account');
+    }
+};

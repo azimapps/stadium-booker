@@ -5,6 +5,16 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User, LogOut } from "lucide-react";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -78,38 +88,63 @@ const Header = () => {
           <LanguageSwitcher />
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
-              <span className="text-sm font-medium hidden md:block">
-                {user?.fullname || user?.phone}
-              </span>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="text-muted-foreground hover:text-destructive"
-                  >
-                    Chiqish
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-10 w-10 border border-border">
+                      <AvatarImage src={user?.avatar || ""} alt={user?.fullname || "User"} />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {(user?.fullname || "U").charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
                   </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Tizimdan chiqish</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Haqiqatan ham tizimdan chiqmoqchimisiz?
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Yo'q</AlertDialogCancel>
-                    <AlertDialogAction onClick={logout} className="bg-destructive hover:bg-destructive/90">
-                      Ha, chiqish
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user?.fullname || "User"}</p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user?.phone}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="cursor-pointer w-full flex items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>{t('nav.profile')}</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive cursor-pointer w-full flex items-center">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>{t('auth.logout')}</span>
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>{t('auth.logout_title')}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {t('auth.logout_desc')}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{t('common.no')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={logout} className="bg-destructive hover:bg-destructive/90">
+                          {t('auth.logout_confirm')}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           ) : (
             <Link to="/auth">
               <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20">
-                Kirish
+                {t('auth.login')}
               </Button>
             </Link>
           )}

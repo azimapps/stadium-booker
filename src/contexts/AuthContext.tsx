@@ -15,6 +15,7 @@ interface AuthContextType {
     login: (token: string, role: 'manager' | 'user', userData: User) => void;
     logout: () => void;
     isAuthenticated: boolean;
+    loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,6 +24,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [role, setRole] = useState<'manager' | 'user' | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         // Check localStorage on mount
@@ -35,6 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setRole(storedRole);
             setUser(JSON.parse(storedUser));
         }
+        setLoading(false);
     }, []);
 
     const login = (newToken: string, newRole: 'manager' | 'user', userData: User) => {
@@ -56,7 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, role, login, logout, isAuthenticated: !!token }}>
+        <AuthContext.Provider value={{ user, token, role, login, logout, isAuthenticated: !!token, loading }}>
             {children}
         </AuthContext.Provider>
     );

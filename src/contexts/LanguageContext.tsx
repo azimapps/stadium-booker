@@ -73,6 +73,42 @@ export const translations: Translations = {
   'tournaments.entrance_fee': { uz: 'Ishtirok to\'lovi', ru: 'Взнос за участие' },
   'tournaments.start_date': { uz: 'Boshlanish vaqti', ru: 'Время начала' },
   'tournaments.free': { uz: 'Bepul', ru: 'Бесплатно' },
+
+  // Profile
+  'profile.title': { uz: 'Mening profilim', ru: 'Мой профиль' },
+  'profile.personal_info': { uz: 'Shaxsiy ma\'lumotlar', ru: 'Личная информация' },
+  'profile.personal_info_desc': { uz: 'Shaxsiy ma\'lumotlaringizni shu yerda yangilang.', ru: 'Обновите свои личные данные здесь.' },
+  'profile.upload_avatar': { uz: 'Rasm yuklash', ru: 'Загрузить аватар' },
+  'profile.avatar_help': { uz: 'Maks 5MB. Formatlar: JPG, PNG, WEBP', ru: 'Макс 5МБ. Форматы: JPG, PNG, WEBP' },
+  'profile.phone': { uz: 'Telefon raqam', ru: 'Номер телефона' },
+  'profile.phone_tooltip': { uz: 'Telefon raqamni o\'zgartirib bo\'lmaydi.', ru: 'Номер телефона изменить нельзя.' },
+  'profile.manager_name': { uz: 'Menejer ismi', ru: 'Имя менеджера' },
+  'profile.full_name': { uz: 'To\'liq ism', ru: 'Полное имя' },
+  'profile.managed_stadiums': { uz: 'Boshqariladigan maydonlar', ru: 'Управляемые стадионы' },
+  'profile.stadium_id': { uz: 'Stadion ID', ru: 'ID стадиона' },
+  'profile.save_changes': { uz: 'Saqlash', ru: 'Сохранить изменения' },
+  'profile.update_success': { uz: 'Profil muvaffaqiyatli yangilandi', ru: 'Профиль успешно обновлен' },
+  'profile.load_error': { uz: 'Profil ma\'lumotlarini yuklashda xatolik', ru: 'Ошибка при загрузке данных профиля' },
+  'profile.update_error': { uz: 'Profilni yanglashda xatolik', ru: 'Ошибка при обновлении профиля' },
+  'profile.delete_error': { uz: 'Hisobni o\'chirishda xatolik', ru: 'Ошибка при удалении аккаунта' },
+  'profile.account_deleted': { uz: 'Hisob o\'chirildi', ru: 'Аккаунт удален' },
+  'profile.account_deleted_desc': { uz: 'Sizning hisobingiz muvaffaqiyatli o\'chirildi.', ru: 'Ваш аккаунт был успешно удален.' },
+  'profile.crop_image': { uz: 'Rasmni qirqish', ru: 'Обрезать изображение' },
+  'profile.crop_desc': { uz: 'Profilingizga moslash uchun rasmni qirqing.', ru: 'Обрежьте изображение, чтобы оно подходило к вашему профилю.' },
+  'profile.set_photo': { uz: 'Rasmni o\'rnatish', ru: 'Установить фото' },
+  'profile.image_size': { uz: 'Hajmi', ru: 'Размер' }, // Adding for completeness if I update the hardcoded "Size" later
+
+  // Auth & Common
+  'auth.logout': { uz: 'Chiqish', ru: 'Выйти' },
+  'auth.logout_title': { uz: 'Tizimdan chiqish', ru: 'Выход из системы' },
+  'auth.logout_desc': { uz: 'Haqiqatan ham tizimdan chiqmoqchimisiz?', ru: 'Вы действительно хотите выйти?' },
+  'auth.logout_confirm': { uz: 'Ha, chiqish', ru: 'Да, выйти' },
+  'auth.login': { uz: 'Kirish', ru: 'Войти' },
+  'nav.profile': { uz: 'Profil', ru: 'Профиль' },
+  'common.no': { uz: 'Yo\'q', ru: 'Нет' },
+  'common.cancel': { uz: 'Bekor qilish', ru: 'Отмена' },
+  'common.success': { uz: 'Muvaffaqiyatli', ru: 'Успешно' },
+  'common.error': { uz: 'Xatolik', ru: 'Ошибка' },
 };
 
 interface LanguageContextType {
