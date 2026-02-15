@@ -42,6 +42,7 @@ export default function Profile() {
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [profileData, setProfileData] = useState<any>(null);
     const [formData, setFormData] = useState({
         fullname: "",
@@ -59,6 +60,7 @@ export default function Profile() {
     const [tempImgUrl, setTempImgUrl] = useState<string | null>(null);
     const [crop, setCrop] = useState({ x: 0, y: 0 });
     const [zoom, setZoom] = useState(1);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
 
     useEffect(() => {
@@ -79,7 +81,8 @@ export default function Profile() {
                         name: data.name || "",
                     });
                 }
-            } catch (error: any) {
+            } catch (err) {
+                const error = err as Error;
                 if (error.message === 'UNAUTHORIZED') {
                     // This is redundant if we check !isAuthenticated, but good for token expiration
                     logout();
@@ -102,7 +105,7 @@ export default function Profile() {
         return () => {
             if (avatarPreview && !avatarPreview.startsWith("http")) URL.revokeObjectURL(avatarPreview);
         };
-    }, [isAuthenticated, isAuthLoading, token, role, navigate, toast, t]);
+    }, [isAuthenticated, isAuthLoading, token, role, navigate, toast, t, avatarPreview, logout]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -122,7 +125,7 @@ export default function Profile() {
         }
     };
 
-    const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => {
+    const onCropComplete = useCallback((croppedArea: Record<string, number>, croppedAreaPixels: Record<string, number>) => {
         setCroppedAreaPixels(croppedAreaPixels);
     }, []);
 
@@ -163,7 +166,8 @@ export default function Profile() {
             // Cleanup temp
             URL.revokeObjectURL(tempImgUrl);
             setTempImgUrl(null);
-        } catch (error: any) {
+        } catch (err) {
+            const error = err as Error;
             console.error(error);
             if (error.message === 'AVATAR_UPLOAD_UNAUTHORIZED') {
                 toast({
@@ -206,7 +210,8 @@ export default function Profile() {
                 title: t('common.success'),
                 description: t('profile.update_success'),
             });
-        } catch (error: any) {
+        } catch (err) {
+            const error = err as Error;
             if (error.message === 'UNAUTHORIZED') {
                 toast({
                     title: t('common.error'),
@@ -247,7 +252,8 @@ export default function Profile() {
                 title: t('common.success'),
                 description: t('profile.update_success'),
             });
-        } catch (error: any) {
+        } catch (err) {
+            const error = err as Error;
             if (error.message === 'UNAUTHORIZED') {
                 toast({
                     title: t('common.error'),

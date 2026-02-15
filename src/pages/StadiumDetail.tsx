@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -14,12 +15,10 @@ import {
     DialogTrigger,
     DialogFooter,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { fetchStadiumById } from '@/services/api';
+import { fetchStadiumById, fetchAvailability, createBooking, CreateBookingRequest } from '@/services/api';
 import {
     MapPin,
-    Users,
     Phone,
     Maximize,
     Calendar as CalendarIcon,
@@ -28,46 +27,100 @@ import {
     Info,
     CheckCircle2,
     AlertCircle,
-    Clock
+    Clock,
+    Loader2
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
-
-const timeSlots = [
-    '08:00', '09:00', '10:00', '11:00', '12:00', '13:00',
-    '14:00', '15:00', '16:00', '17:00', '18:00', '19:00',
-    '20:00', '21:00', '22:00', '23:00'
-];
 
 const StadiumDetail = () => {
     const { id } = useParams<{ id: string }>();
     const { language, t } = useLanguage();
+    const { isAuthenticated, token } = useAuth(); // Get auth state
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
+
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-    const [selectedTime, setSelectedTime] = useState<string | null>(null);
-    const [phone, setPhone] = useState('');
+    const [selectedHours, setSelectedHours] = useState<number[]>([]);
     const [isBookingOpen, setIsBookingOpen] = useState(false);
+    const [bookingStep, setBookingStep] = useState<'selection' | 'confirm' | 'success'>('selection');
 
-    const { data: stadium, isLoading, error } = useQuery({
+    // Fetch Stadium Details
+    const { data: stadium, isLoading: isStadiumLoading, error: stadiumError } = useQuery({
         queryKey: ['stadium', id],
         queryFn: () => fetchStadiumById(id!),
         enabled: !!id,
     });
 
-    const handleBook = () => {
-        if (!selectedDate || !selectedTime || !phone) {
-            toast.error(t('booking.error'));
-            return;
-        }
+    // Fetch Availability
+    const formattedDate = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined;
+    const { data: availability, isLoading: isAvailabilityLoading } = useQuery({
+        queryKey: ['availability', id, formattedDate],
+        queryFn: () => fetchAvailability(token!, parseInt(id!), formattedDate),
+        enabled: !!id && !!selectedDate && !!token && isBookingOpen,
+    });
 
-        toast.success(t('booking.success'), {
-            description: `${format(selectedDate, 'PP')} at ${selectedTime}`,
+    // Create Booking Mutation
+    const createBookingMutation = useMutation({
+        mutationFn: (data: CreateBookingRequest) => createBooking(token!, data),
+        onSuccess: () => {
+            setBookingStep('success');
+            queryClient.invalidateQueries({ queryKey: ['availability', id, formattedDate] });
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || t('booking.error'));
+        }
+    });
+
+    const handleConfirmBooking = () => {
+        if (!isAuthenticated || !selectedDate || selectedHours.length === 0) return;
+
+        createBookingMutation.mutate({
+            stadium_id: parseInt(id!),
+            is_recurring: false,
+            date: format(selectedDate, 'yyyy-MM-dd'),
+            hours: selectedHours.sort((a, b) => a - b)
         });
+    };
+
+    const toggleHourSelection = (hour: number) => {
+        let newSelection = [...selectedHours];
+
+        if (newSelection.includes(hour)) {
+            newSelection = newSelection.filter(h => h !== hour);
+        } else {
+            // Logic for max 3 consecutive
+            if (newSelection.length === 0) {
+                newSelection = [hour];
+            } else {
+                const min = Math.min(...newSelection);
+                const max = Math.max(...newSelection);
+
+                // If adjacent and within limit (max 3)
+                // We check if adding this hour keeps it consecutive and <= 3
+                // Cases: 
+                // 1. Adding to end: hour == max + 1
+                // 2. Adding to start: hour == min - 1
+
+                if ((hour === min - 1 || hour === max + 1) && newSelection.length < 3) {
+                    newSelection.push(hour);
+                } else {
+                    // Not adjacent or limit reached, restart selection
+                    newSelection = [hour];
+                }
+            }
+        }
+        setSelectedHours(newSelection.sort((a, b) => a - b));
+    };
+
+    const resetBooking = () => {
+        setBookingStep('selection');
+        setSelectedHours([]);
         setIsBookingOpen(false);
     };
 
-    if (isLoading) {
+    if (isStadiumLoading) {
         return (
             <div className="min-h-screen flex flex-col">
                 <Header />
@@ -91,7 +144,7 @@ const StadiumDetail = () => {
         );
     }
 
-    if (error || !stadium) {
+    if (stadiumError || !stadium) {
         return (
             <div className="min-h-screen flex flex-col">
                 <Header />
@@ -117,6 +170,9 @@ const StadiumDetail = () => {
 
     const nextImage = () => setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
     const prevImage = () => setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+
+    // Generate time slots based on availability or default 9-23
+    const hoursReference = availability?.timetable_hours || Array.from({ length: 15 }, (_, i) => i + 9); // Default 9 to 23
 
     return (
         <div className="min-h-screen flex flex-col bg-background">
@@ -219,28 +275,6 @@ const StadiumDetail = () => {
                                 </p>
                             </div>
 
-                            {/* Facilities */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                    <CheckCircle2 className="w-5 h-5 text-primary" />
-                                    <span>{t('stadiums.artificialTurfs')}</span>
-                                </div>
-                                {stadium.is_metro_near && (
-                                    <div className="flex items-center gap-2 text-muted-foreground">
-                                        <CheckCircle2 className="w-5 h-5 text-primary" />
-                                        <span>{t('stadiums.nearMetro')}: {stadium.metro_station}</span>
-                                    </div>
-                                )}
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                    <CheckCircle2 className="w-5 h-5 text-primary" />
-                                    <span>{t('stadiums.open247')}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                    <CheckCircle2 className="w-5 h-5 text-primary" />
-                                    <span>{t('stadiums.freeParking')}</span>
-                                </div>
-                            </div>
-
                             {/* Booking Action */}
                             <div className="p-6 rounded-2xl bg-primary/5 border border-primary/20 space-y-6">
                                 <div className="flex flex-col gap-1">
@@ -253,93 +287,188 @@ const StadiumDetail = () => {
                                     ))}
                                 </div>
 
-                                <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
+                                <Dialog open={isBookingOpen} onOpenChange={(open) => {
+                                    if (!open) resetBooking();
+                                    else setIsBookingOpen(true);
+                                }}>
                                     <DialogTrigger asChild>
                                         <Button size="lg" className="w-full text-lg h-14 shadow-lg shadow-primary/20">
                                             {t('stadiums.book')}
                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-                                        <DialogHeader>
-                                            <DialogTitle className="text-2xl font-bold">{t('booking.title')}</DialogTitle>
-                                        </DialogHeader>
+                                    <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden bg-white dark:bg-zinc-950 rounded-3xl gap-0 max-h-[90vh] flex flex-col">
 
-                                        <div className="space-y-6 py-4">
-                                            <div className="space-y-3">
-                                                <label className="text-sm font-medium flex items-center gap-2">
-                                                    <CalendarIcon className="w-4 h-4 text-primary" />
-                                                    {t('booking.date')}
-                                                </label>
-                                                <div className="border rounded-xl p-2 bg-background flex justify-center">
-                                                    <Calendar
-                                                        mode="single"
-                                                        selected={selectedDate}
-                                                        onSelect={setSelectedDate}
-                                                        className="rounded-md border-0"
-                                                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                                                    />
+                                        {/* Step 1: Selection */}
+                                        {bookingStep === 'selection' && (
+                                            <>
+                                                <DialogHeader className="px-6 pt-6 pb-2">
+                                                    <DialogTitle className="text-xl font-bold">{displayName}</DialogTitle>
+                                                </DialogHeader>
+
+                                                <div className="flex-1 overflow-y-auto px-6 py-2 space-y-6">
+                                                    <div className="space-y-4">
+                                                        <h3 className="font-semibold">{t('booking.date')}</h3>
+                                                        <div className="flex justify-center bg-muted/20 rounded-2xl p-2">
+                                                            <Calendar
+                                                                mode="single"
+                                                                selected={selectedDate}
+                                                                onSelect={setSelectedDate}
+                                                                className="rounded-md border-0"
+                                                                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-4 pb-4">
+                                                        <h3 className="font-semibold">{t('booking.available_hours')}</h3>
+                                                        {!isAuthenticated ? (
+                                                            <div className="text-center p-4 bg-muted/50 rounded-xl">
+                                                                <p className="text-sm text-muted-foreground mb-3">Login required to view availability</p>
+                                                                <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>Login</Button>
+                                                            </div>
+                                                        ) : isAvailabilityLoading ? (
+                                                            <div className="flex justify-center py-8"><Loader2 className="animate-spin text-primary" /></div>
+                                                        ) : (
+                                                            <div className="grid grid-cols-4 gap-2">
+                                                                {hoursReference.map((hour) => {
+                                                                    const isBooked = availability?.booked_hours?.includes(hour);
+                                                                    const isSelected = selectedHours.includes(hour);
+                                                                    const timeLabel = `${hour.toString().padStart(2, '0')}:00`;
+
+                                                                    return (
+                                                                        <button
+                                                                            key={hour}
+                                                                            type="button"
+                                                                            disabled={isBooked}
+                                                                            onClick={() => toggleHourSelection(hour)}
+                                                                            className={`
+                                                                                h-10 rounded-xl text-xs font-medium transition-all duration-200 border
+                                                                                ${isSelected
+                                                                                    ? 'bg-primary text-primary-foreground border-primary'
+                                                                                    : isBooked
+                                                                                        ? 'bg-muted text-muted-foreground border-transparent opacity-50 cursor-not-allowed'
+                                                                                        : 'bg-muted/30 hover:bg-muted text-foreground border-transparent hover:border-primary/20'
+                                                                                }
+                                                                            `}
+                                                                        >
+                                                                            {timeLabel}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        )}
+                                                        <div className="flex items-center gap-2 mt-4 text-xs text-muted-foreground">
+                                                            <div className="w-3 h-3 rounded bg-primary"></div> Selected
+                                                            <div className="w-3 h-3 rounded bg-muted/30 ml-2"></div> Available
+                                                            <div className="w-3 h-3 rounded bg-muted ml-2"></div> Booked
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
 
-                                            <div className="space-y-3">
-                                                <label className="text-sm font-medium flex items-center gap-2">
-                                                    <Clock className="w-4 h-4 text-primary" />
-                                                    {t('booking.time')}
-                                                </label>
-                                                <div className="grid grid-cols-4 gap-2">
-                                                    {timeSlots.map((time) => (
-                                                        <Button
-                                                            key={time}
-                                                            variant={selectedTime === time ? "default" : "outline"}
-                                                            className={`text-xs h-9 transition-all ${selectedTime === time ? "ring-2 ring-primary ring-offset-2" : ""
-                                                                }`}
-                                                            onClick={() => setSelectedTime(time)}
-                                                        >
-                                                            {time}
-                                                        </Button>
-                                                    ))}
+                                                <div className="p-6 border-t bg-background mt-auto">
+                                                    <Button
+                                                        className="w-full h-12 text-lg rounded-xl bg-primary hover:bg-primary/90"
+                                                        disabled={selectedHours.length === 0 || !selectedDate || !isAuthenticated}
+                                                        onClick={() => setBookingStep('confirm')}
+                                                    >
+                                                        Band qilish
+                                                    </Button>
                                                 </div>
-                                            </div>
+                                            </>
+                                        )}
 
-                                            <div className="space-y-3">
-                                                <label className="text-sm font-medium flex items-center gap-2">
-                                                    <Phone className="w-4 h-4 text-primary" />
-                                                    {t('booking.phone')}
-                                                </label>
-                                                <Input
-                                                    type="tel"
-                                                    placeholder="+998"
-                                                    value={phone}
-                                                    onChange={(e) => {
-                                                        const val = e.target.value;
-                                                        if (!val.startsWith('+998')) {
-                                                            setPhone('+998');
-                                                        } else {
-                                                            // Keep only numbers after +998 and limit length
-                                                            const numbers = val.slice(4).replace(/\D/g, '');
-                                                            if (numbers.length <= 9) {
-                                                                setPhone('+998' + numbers);
-                                                            }
-                                                        }
-                                                    }}
-                                                    onFocus={(e) => {
-                                                        if (!phone) setPhone('+998');
-                                                    }}
-                                                    className="h-12 rounded-xl"
-                                                />
-                                            </div>
-                                        </div>
+                                        {/* Step 2: Confirmation */}
+                                        {bookingStep === 'confirm' && (
+                                            <>
+                                                <div className="px-6 pt-6 pb-2 text-center">
+                                                    <h3 className="text-xl font-semibold">Buyurtmani tasdiqlash</h3>
+                                                </div>
 
-                                        <DialogFooter>
-                                            <Button
-                                                size="lg"
-                                                className="w-full h-12 text-lg"
-                                                onClick={handleBook}
-                                                disabled={!selectedDate || !selectedTime || !phone}
-                                            >
-                                                {t('booking.confirm')}
-                                            </Button>
-                                        </DialogFooter>
+                                                <div className="p-6 space-y-4 flex-1 overflow-y-auto">
+                                                    <div className="bg-muted/30 rounded-2xl p-4 space-y-4">
+                                                        <div className="flex justify-between items-center text-sm">
+                                                            <span className="text-muted-foreground">Sana</span>
+                                                            <span className="font-medium">{selectedDate ? format(selectedDate, 'yyyy-MM-dd') : ''}</span>
+                                                        </div>
+
+                                                        <div className="space-y-2 border-t border-border/50 pt-2">
+                                                            {selectedHours.sort((a, b) => a - b).map(h => (
+                                                                <div key={h} className="flex justify-between items-center text-sm text-primary">
+                                                                    <span className="font-mono text-base">{h.toString().padStart(2, '0')}:00</span>
+                                                                    <span className="font-medium tracking-wide">{stadium.price_per_hour.toLocaleString()} so'm</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+
+                                                        <div className="flex justify-between items-center pt-2 border-t border-border">
+                                                            <span className="font-bold text-lg">Jami summa</span>
+                                                            <span className="font-bold text-lg text-primary">
+                                                                {(stadium.price_per_hour * selectedHours.length).toLocaleString()} so'm
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="p-6 pt-0 space-y-3 mt-auto">
+                                                    <Button
+                                                        className="w-full h-12 text-lg rounded-xl bg-primary hover:bg-primary/90"
+                                                        onClick={handleConfirmBooking}
+                                                        disabled={createBookingMutation.isPending}
+                                                    >
+                                                        {createBookingMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                        Tasdiqlash
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        className="w-full h-12 text-lg rounded-xl border-primary text-primary hover:bg-primary/10"
+                                                        onClick={() => setBookingStep('selection')}
+                                                    >
+                                                        Bekor qilish
+                                                    </Button>
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {/* Step 3: Success */}
+                                        {bookingStep === 'success' && (
+                                            <div className="flex flex-col items-center justify-center p-8 text-center h-full">
+                                                <div className="w-20 h-20 bg-transparent border-4 border-primary rounded-full flex items-center justify-center mb-6">
+                                                    <CheckCircle2 className="w-10 h-10 text-primary" strokeWidth={3} />
+                                                </div>
+
+                                                <h2 className="text-2xl font-bold mb-8">Buyurtma yaratildi</h2>
+
+                                                <div className="w-full space-y-3 mb-8 text-sm">
+                                                    <div className="flex justify-between">
+                                                        <span className="text-muted-foreground text-left">Stadion</span>
+                                                        <span className="font-medium text-right max-w-[60%] truncate">{displayName}</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-muted-foreground">Sana</span>
+                                                        <span className="font-medium">{selectedDate ? format(selectedDate, 'yyyy-MM-dd') : ''}</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-muted-foreground">Soat</span>
+                                                        <span className="font-medium">{selectedHours.sort((a, b) => a - b).map(h => `${h.toString().padStart(2, '0')}:00`).join(', ')}</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-muted-foreground">Jami</span>
+                                                        <span className="font-medium">{(stadium.price_per_hour * selectedHours.length).toLocaleString()} so'm</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-muted-foreground">Holat</span>
+                                                        <span className="font-bold text-primary">Jarayonda</span>
+                                                    </div>
+                                                </div>
+
+                                                <Button
+                                                    className="w-full h-12 text-lg rounded-xl bg-primary hover:bg-primary/90"
+                                                    onClick={() => navigate('/bookings')}
+                                                >
+                                                    Buyurtmalarga o'tish
+                                                </Button>
+                                            </div>
+                                        )}
                                     </DialogContent>
                                 </Dialog>
                             </div>

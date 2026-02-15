@@ -193,7 +193,7 @@ export const getProfile = async (token: string, role: 'manager' | 'user') => {
     return response.json();
 };
 
-export const updateProfile = async (token: string, role: 'manager' | 'user', data: any) => {
+export const updateProfile = async (token: string, role: 'manager' | 'user', data: Record<string, unknown>) => {
     const endpoint = role === 'manager' ? 'managers' : 'users';
     const response = await fetch(`${BASE_URL}/${endpoint}/me`, {
         method: 'PUT',
@@ -272,3 +272,155 @@ export const deleteAccount = async (token: string, role: 'manager' | 'user') => 
         throw new Error('Failed to delete account');
     }
 };
+
+// Booking Types & API
+
+export interface Booking {
+    id: number;
+    stadium_id: number;
+    user_id: number;
+    is_recurring: boolean;
+    day_of_week: number | null;
+    date: string | null;
+    hours: number[];
+    price: number | null;
+    status: 'in_progress' | 'paid_online' | 'assigned_by_admin' | 'cancelled';
+    payment_deadline: string | null;
+    assigned_by_manager_id: number | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    stadium: Stadium;
+}
+
+export interface BookingAvailability {
+    stadium_id: number;
+    date?: string;
+    day_of_week?: number;
+    timetable_hours: number[];
+    booked_hours: number[];
+    available_hours: number[];
+}
+
+export interface CreateBookingRequest {
+    stadium_id: number;
+    is_recurring?: boolean;
+    day_of_week?: number;
+    date?: string;
+    hours: number[];
+}
+
+export const fetchAvailability = async (token: string, stadiumId: number, date?: string, dayOfWeek?: number): Promise<BookingAvailability> => {
+    if (!token) throw new Error("UNAUTHORIZED");
+
+    const url = new URL(`${BASE_URL}/client/bookings/availability/${stadiumId}`);
+    if (date) url.searchParams.append('booking_date', date);
+    if (dayOfWeek !== undefined) url.searchParams.append('day_of_week', dayOfWeek.toString());
+
+    const response = await fetch(url.toString(), {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (response.status === 401) {
+        throw new Error('UNAUTHORIZED');
+    }
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.detail || 'Failed to fetch availability');
+    }
+
+    return response.json();
+};
+
+export const createBooking = async (token: string, data: CreateBookingRequest): Promise<Booking> => {
+    if (!token) throw new Error("UNAUTHORIZED");
+
+    const response = await fetch(`${BASE_URL}/client/bookings/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+    });
+
+    if (response.status === 401) {
+        throw new Error('UNAUTHORIZED');
+    }
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.detail || 'Failed to create booking');
+    }
+
+    return response.json();
+};
+
+export const fetchMyBookings = async (token: string, status?: string): Promise<Booking[]> => {
+    if (!token) throw new Error("UNAUTHORIZED");
+
+    const url = new URL(`${BASE_URL}/client/bookings/my`);
+    if (status) url.searchParams.append('status_filter', status);
+
+    const response = await fetch(url.toString(), {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (response.status === 401) {
+        throw new Error('UNAUTHORIZED');
+    }
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch bookings');
+    }
+
+    return response.json();
+};
+
+export const fetchBookingById = async (token: string, id: number): Promise<Booking> => {
+    if (!token) throw new Error("UNAUTHORIZED");
+
+    const response = await fetch(`${BASE_URL}/client/bookings/${id}`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (response.status === 401) {
+        throw new Error('UNAUTHORIZED');
+    }
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch booking');
+    }
+
+    return response.json();
+};
+
+export const cancelBooking = async (token: string, id: number): Promise<Booking> => {
+    if (!token) throw new Error("UNAUTHORIZED");
+
+    const response = await fetch(`${BASE_URL}/client/bookings/${id}/cancel`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (response.status === 401) {
+        throw new Error('UNAUTHORIZED');
+    }
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.detail || 'Failed to cancel booking');
+    }
+
+    return response.json();
+};
+

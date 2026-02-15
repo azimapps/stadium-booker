@@ -45,7 +45,7 @@ export async function compressImage(file: File): Promise<File> {
 
         // 2. Compress (Start aggressive since user requested "max" compression)
         // Try 0.7 quality first, then reduce if still > 500KB
-        let quality = 0.7; // Good balance, usually results in small files
+        const quality = 0.7; // Good balance, usually results in small files
 
         const compress = (q: number) => {
           canvas.toBlob(
