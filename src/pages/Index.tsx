@@ -4,14 +4,16 @@ import Hero from '@/components/Hero';
 import StadiumsSection from '@/components/StadiumsSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import Footer from '@/components/Footer';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
+  const { isAuthenticated } = useAuth();
   return (
     <div className="min-h-screen">
       <Header />
       <Hero />
       <StadiumsSection />
-      <FeaturesSection />
+      {!isAuthenticated && <FeaturesSection />}
       <Footer />
     </div>
   );

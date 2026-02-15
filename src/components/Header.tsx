@@ -31,10 +31,10 @@ const Header = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const location = useLocation();
 
-  const handleStadiumsClick = (e: React.MouseEvent) => {
+  const handleScrollToSection = (e: React.MouseEvent, sectionId: string) => {
     if (location.pathname === '/') {
       e.preventDefault();
-      const element = document.getElementById('stadiums');
+      const element = document.getElementById(sectionId);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
       }
@@ -57,20 +57,11 @@ const Header = () => {
         <nav className="hidden lg:flex items-center gap-10">
           {[
             { name: t('nav.home'), to: '/' },
-            { name: t('nav.stadiums'), to: '/stadiums', onClick: handleStadiumsClick },
-            { name: t('nav.tournaments'), to: '/tournaments' },
-            { name: t('nav.about'), to: '#features', href: true }
-          ].map((link, i) => (
-            link.href ? (
-              <a
-                key={i}
-                href={link.to}
-                className="text-[15px] font-semibold text-muted-foreground hover:text-primary transition-all duration-300 relative group"
-              >
-                {link.name}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
-              </a>
-            ) : (
+            { name: t('nav.stadiums'), to: '/#stadiums', onClick: (e: React.MouseEvent) => handleScrollToSection(e, 'stadiums') },
+            { name: t('nav.about'), to: '/#features', onClick: (e: React.MouseEvent) => handleScrollToSection(e, 'features') }
+          ]
+            .filter(link => !(isAuthenticated && link.to === '/#features'))
+            .map((link, i) => (
               <Link
                 key={i}
                 to={link.to}
@@ -80,8 +71,7 @@ const Header = () => {
                 {link.name}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
               </Link>
-            )
-          ))}
+            ))}
         </nav>
 
         <div className="flex items-center gap-4">
