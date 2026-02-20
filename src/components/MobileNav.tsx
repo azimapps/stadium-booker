@@ -27,7 +27,7 @@ const MobileNav = () => {
         },
         {
             name: t("nav.media"),
-            path: "/tournaments", // Using tournaments page for Media section
+            path: "/#media",
             icon: PlaySquare,
         },
         {
@@ -37,15 +37,27 @@ const MobileNav = () => {
         },
     ];
 
+    const handleNavClick = (e: React.MouseEvent, path: string) => {
+        if (path.includes("#") && location.pathname === "/") {
+            const id = path.split("#")[1];
+            const element = document.getElementById(id);
+            if (element) {
+                e.preventDefault();
+                element.scrollIntoView({ behavior: "smooth" });
+            }
+        }
+    };
+
     return (
         <div className="fixed bottom-2 left-2 right-2 z-50 lg:hidden">
             <div className="flex items-center justify-around bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-1 h-16">
                 {items.map((item) => {
-                    const isActive = location.pathname === item.path;
+                    const isActive = location.pathname === item.path || (item.path.includes("#") && location.pathname === "/" && item.path.startsWith("/#"));
                     return (
                         <Link
                             key={item.path}
                             to={item.path}
+                            onClick={(e) => handleNavClick(e, item.path)}
                             className={cn(
                                 "flex flex-col items-center justify-center w-full h-full rounded-xl transition-all duration-300 gap-1",
                                 isActive

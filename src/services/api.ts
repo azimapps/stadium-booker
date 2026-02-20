@@ -424,3 +424,40 @@ export const cancelBooking = async (token: string, id: number): Promise<Booking>
     return response.json();
 };
 
+export interface Media {
+    id: number;
+    title_uz: string;
+    title_ru: string;
+    content_uz: string;
+    content_ru: string;
+    youtube_video_link: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export const fetchMedia = async (token: string, skip: number = 0, limit: number = 100): Promise<Media[]> => {
+    if (!token) throw new Error("UNAUTHORIZED");
+
+    const url = new URL(`${BASE_URL}/client/media/`);
+    url.searchParams.append('skip', skip.toString());
+    url.searchParams.append('limit', limit.toString());
+
+    const response = await fetch(url.toString(), {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (response.status === 401) {
+        throw new Error('UNAUTHORIZED');
+    }
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch media');
+    }
+
+    return response.json();
+};
+
+
