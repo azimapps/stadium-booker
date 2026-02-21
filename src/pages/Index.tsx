@@ -3,7 +3,6 @@ import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import StadiumsSection from '@/components/StadiumsSection';
 import TournamentsSection from '@/components/TournamentsSection';
-import MediaSection from '@/components/MediaSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,7 +15,6 @@ const Index = () => {
       {!isAuthenticated && <Hero />}
       {isAuthenticated && <TournamentsSection />}
       <StadiumsSection />
-      {isAuthenticated && <MediaSection />}
       {!isAuthenticated && <FeaturesSection />}
       <Footer />
     </div>

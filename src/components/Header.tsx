@@ -58,7 +58,7 @@ const Header = () => {
           {[
             { name: t('nav.home'), to: '/', show: true },
             { name: t('nav.orders'), to: '/bookings', show: isAuthenticated },
-            { name: t('nav.media'), to: '/#media', onClick: (e: React.MouseEvent) => handleScrollToSection(e, 'media'), show: isAuthenticated },
+            { name: t('nav.media'), to: '/media', show: isAuthenticated },
             { name: t('nav.stadiums'), to: '/#stadiums', onClick: (e: React.MouseEvent) => handleScrollToSection(e, 'stadiums'), show: !isAuthenticated },
             { name: t('nav.about'), to: '/#features', onClick: (e: React.MouseEvent) => handleScrollToSection(e, 'features'), show: !isAuthenticated }
           ]

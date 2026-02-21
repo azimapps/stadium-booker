@@ -27,7 +27,7 @@ const MobileNav = () => {
         },
         {
             name: t("nav.media"),
-            path: "/#media",
+            path: "/media",
             icon: PlaySquare,
         },
         {
@@ -52,7 +52,7 @@ const MobileNav = () => {
         <div className="fixed bottom-2 left-2 right-2 z-50 lg:hidden">
             <div className="flex items-center justify-around bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-1 h-16">
                 {items.map((item) => {
-                    const isActive = location.pathname === item.path || (item.path.includes("#") && location.pathname === "/" && item.path.startsWith("/#"));
+                    const isActive = location.pathname === item.path;
                     return (
                         <Link
                             key={item.path}
