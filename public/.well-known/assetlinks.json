@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "uz.stadion24",
+      "sha256_cert_fingerprints": [
+        "C5:99:8C:4B:6F:DE:14:93:45:06:5D:B2:A4:B6:D5:46:AE:B9:F4:E5:F0:40:73:C1:23:9D:76:28:F9:E7:4F:A2"
+      ]
+    }
+  }
+]
