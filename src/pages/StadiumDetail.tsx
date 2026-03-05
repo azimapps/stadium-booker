@@ -275,6 +275,29 @@ const StadiumDetail = () => {
                                 </p>
                             </div>
 
+                            {/* Location Map */}
+                            {stadium.latitude && stadium.longitude && (
+                                <div className="space-y-4">
+                                    <h2 className="text-xl font-semibold">{t('stadiums.location') || 'Joylashuv'}</h2>
+                                    <a
+                                        href={`https://yandex.uz/maps/?pt=${stadium.longitude},${stadium.latitude}&z=16&l=map`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block rounded-2xl overflow-hidden border border-border hover:border-primary/50 transition-colors"
+                                    >
+                                        <img
+                                            src={`https://static-maps.yandex.ru/v1?lang=uz_UZ&ll=${stadium.longitude},${stadium.latitude}&z=16&size=600,300&l=map&pt=${stadium.longitude},${stadium.latitude},pm2gnm`}
+                                            alt={`${displayName} xaritada`}
+                                            className="w-full h-[200px] object-cover"
+                                        />
+                                    </a>
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <MapPin className="w-4 h-4" />
+                                        <span>{displayAddress}</span>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Booking Action */}
                             <div className="p-6 rounded-2xl bg-primary/5 border border-primary/20 space-y-6">
                                 <div className="flex flex-col gap-1">
