@@ -1,7 +1,7 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { Calendar, Clock, Banknote, Loader2, CheckCircle2, Timer } from 'lucide-react';
+import { Calendar, Clock, Banknote, Loader2, CheckCircle2, Timer, MapPin } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMyBookings, createPaymeOrder, createClickOrder, Booking } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -217,6 +217,14 @@ const Bookings = () => {
                                                 {booking.price?.toLocaleString()} so'm
                                             </span>
                                         </div>
+                                        {(booking.stadium.address_uz || booking.stadium.address_ru) && (
+                                            <div className="flex items-center gap-3 text-muted-foreground">
+                                                <MapPin className="w-5 h-5 flex-shrink-0" />
+                                                <span className="font-medium text-foreground">
+                                                    {language === 'uz' ? booking.stadium.address_uz : booking.stadium.address_ru}
+                                                </span>
+                                            </div>
+                                        )}
 
                                         {/* Payment info for partially paid */}
                                         {booking.status === 'partially_paid' && (
