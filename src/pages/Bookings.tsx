@@ -255,13 +255,14 @@ const Bookings = () => {
                                         </div>
                                     )}
 
-                                    {/* Pay remaining for partially paid */}
-                                    {booking.status === 'partially_paid' && (
+                                    {/* Batafsil button - navigate to stadium page */}
+                                    {booking.status !== 'in_progress' && booking.status !== 'cancelled' && (
                                         <Button
-                                            className="w-full h-12 text-lg rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
-                                            onClick={() => setPaymentBooking(booking)}
+                                            variant="outline"
+                                            className="w-full h-12 text-lg rounded-xl border-primary/30"
+                                            onClick={() => navigate(`/stadiums/${booking.stadium_id}`)}
                                         >
-                                            Qolganini to'lash
+                                            Batafsil
                                         </Button>
                                     )}
                                 </div>
