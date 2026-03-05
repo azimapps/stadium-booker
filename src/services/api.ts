@@ -16,7 +16,7 @@ export interface Stadium {
     surface_type: string;
     roof_type: string;
     price_per_hour: number;
-    discount_price: number | null;
+    discount_price_per_hour: number | null;
     phone: string[];
     main_image: string;
     images: string[];

@@ -282,7 +282,7 @@ const StadiumDetail = () => {
                             </div>
 
                             {/* Discount banner */}
-                            {stadium.discount_price && stadium.discount_price > 0 && (
+                            {stadium.discount_price_per_hour && stadium.discount_price_per_hour > 0 && (
                                 <div className="flex items-center gap-3 bg-primary/10 border border-primary/20 rounded-2xl px-5 py-4">
                                     <Tag className="w-5 h-5 text-primary flex-shrink-0" />
                                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -290,7 +290,7 @@ const StadiumDetail = () => {
                                             14:00 — 18:00 chegirma narxi
                                         </span>
                                         <span className="text-sm font-bold text-primary">
-                                            {stadium.discount_price.toLocaleString()} so'm/soat
+                                            {stadium.discount_price_per_hour.toLocaleString()} so'm/soat
                                         </span>
                                     </div>
                                 </div>
