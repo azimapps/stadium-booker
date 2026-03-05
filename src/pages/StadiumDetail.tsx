@@ -62,13 +62,6 @@ const StadiumDetail = () => {
         enabled: !!id && !!selectedDate && !!token && isBookingOpen,
     });
 
-    // Fetch discount info (today's availability)
-    const todayFormatted = format(new Date(), 'yyyy-MM-dd');
-    const { data: discountInfo } = useQuery({
-        queryKey: ['discount-info', id, todayFormatted],
-        queryFn: () => fetchAvailability(token!, parseInt(id!), todayFormatted),
-        enabled: !!id && !!token,
-    });
 
     // Create Booking Mutation
     const createBookingMutation = useMutation({
@@ -289,16 +282,15 @@ const StadiumDetail = () => {
                             </div>
 
                             {/* Discount banner */}
-                            {discountInfo?.discount_hours && discountInfo.discount_hours.length > 0 && (
+                            {stadium.discount_price && stadium.discount_price > 0 && (
                                 <div className="flex items-center gap-3 bg-primary/10 border border-primary/20 rounded-2xl px-5 py-4">
                                     <Tag className="w-5 h-5 text-primary flex-shrink-0" />
                                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                                         <span className="text-sm font-medium">
-                                            {`${Math.min(...discountInfo.discount_hours).toString().padStart(2, '0')}:00 — ${(Math.max(...discountInfo.discount_hours) + 1).toString().padStart(2, '0')}:00`}
-                                            {' '}chegirma narxi
+                                            14:00 — 18:00 chegirma narxi
                                         </span>
                                         <span className="text-sm font-bold text-primary">
-                                            {discountInfo.discount_price.toLocaleString()} so'm/soat
+                                            {stadium.discount_price.toLocaleString()} so'm/soat
                                         </span>
                                     </div>
                                 </div>
