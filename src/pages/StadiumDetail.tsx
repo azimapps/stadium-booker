@@ -28,7 +28,8 @@ import {
     CheckCircle2,
     AlertCircle,
     Clock,
-    Loader2
+    Loader2,
+    Tag
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
@@ -59,6 +60,14 @@ const StadiumDetail = () => {
         queryKey: ['availability', id, formattedDate],
         queryFn: () => fetchAvailability(token!, parseInt(id!), formattedDate),
         enabled: !!id && !!selectedDate && !!token && isBookingOpen,
+    });
+
+    // Fetch discount info (today's availability)
+    const todayFormatted = format(new Date(), 'yyyy-MM-dd');
+    const { data: discountInfo } = useQuery({
+        queryKey: ['discount-info', id, todayFormatted],
+        queryFn: () => fetchAvailability(token!, parseInt(id!), todayFormatted),
+        enabled: !!id && !!token,
     });
 
     // Create Booking Mutation
@@ -279,6 +288,22 @@ const StadiumDetail = () => {
                                 </div>
                             </div>
 
+                            {/* Discount banner */}
+                            {discountInfo?.discount_hours && discountInfo.discount_hours.length > 0 && (
+                                <div className="flex items-center gap-3 bg-primary/10 border border-primary/20 rounded-2xl px-5 py-4">
+                                    <Tag className="w-5 h-5 text-primary flex-shrink-0" />
+                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                        <span className="text-sm font-medium">
+                                            {`${Math.min(...discountInfo.discount_hours).toString().padStart(2, '0')}:00 — ${(Math.max(...discountInfo.discount_hours) + 1).toString().padStart(2, '0')}:00`}
+                                            {' '}chegirma narxi
+                                        </span>
+                                        <span className="text-sm font-bold text-primary">
+                                            {discountInfo.discount_price.toLocaleString()} so'm/soat
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Description */}
                             <div className="space-y-4">
                                 <h2 className="text-xl font-semibold">{t('stadiums.about')}</h2>
@@ -366,6 +391,7 @@ const StadiumDetail = () => {
                                                                 {hoursReference.map((hour) => {
                                                                     const isBooked = availability?.booked_hours?.includes(hour);
                                                                     const isSelected = selectedHours.includes(hour);
+                                                                    const isDiscount = availability?.discount_hours?.includes(hour);
                                                                     const timeLabel = `${hour.toString().padStart(2, '0')}:00`;
 
                                                                     return (
@@ -375,25 +401,36 @@ const StadiumDetail = () => {
                                                                             disabled={isBooked}
                                                                             onClick={() => toggleHourSelection(hour)}
                                                                             className={`
-                                                                                h-10 rounded-xl text-xs font-medium transition-all duration-200 border
+                                                                                relative rounded-xl text-xs font-medium transition-all duration-200 border
+                                                                                ${isDiscount && !isBooked ? 'h-14' : 'h-10'}
                                                                                 ${isSelected
                                                                                     ? 'bg-primary text-primary-foreground border-primary'
                                                                                     : isBooked
                                                                                         ? 'bg-muted text-muted-foreground border-transparent opacity-50 cursor-not-allowed'
-                                                                                        : 'bg-muted/30 hover:bg-muted text-foreground border-transparent hover:border-primary/20'
+                                                                                        : isDiscount
+                                                                                            ? 'bg-yellow-500/10 hover:bg-yellow-500/20 text-foreground border-yellow-500/30 hover:border-yellow-500/50'
+                                                                                            : 'bg-muted/30 hover:bg-muted text-foreground border-transparent hover:border-primary/20'
                                                                                 }
                                                                             `}
                                                                         >
-                                                                            {timeLabel}
+                                                                            <span>{timeLabel}</span>
+                                                                            {isDiscount && !isBooked && (
+                                                                                <span className={`block text-[10px] mt-0.5 ${isSelected ? 'text-primary-foreground/80' : 'text-yellow-600 dark:text-yellow-400'}`}>
+                                                                                    {availability!.discount_price.toLocaleString()}
+                                                                                </span>
+                                                                            )}
                                                                         </button>
                                                                     );
                                                                 })}
                                                             </div>
                                                         )}
-                                                        <div className="flex items-center gap-2 mt-4 text-xs text-muted-foreground">
-                                                            <div className="w-3 h-3 rounded bg-primary"></div> Selected
-                                                            <div className="w-3 h-3 rounded bg-muted/30 ml-2"></div> Available
-                                                            <div className="w-3 h-3 rounded bg-muted ml-2"></div> Booked
+                                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-4 text-xs text-muted-foreground">
+                                                            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-primary"></div> Tanlangan</div>
+                                                            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-muted/30"></div> Bo'sh</div>
+                                                            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-muted"></div> Band</div>
+                                                            {availability?.discount_hours && availability.discount_hours.length > 0 && (
+                                                                <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-yellow-500/30 border border-yellow-500/50"></div> Chegirma</div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -425,18 +462,32 @@ const StadiumDetail = () => {
                                                         </div>
 
                                                         <div className="space-y-2 border-t border-border/50 pt-2">
-                                                            {selectedHours.sort((a, b) => a - b).map(h => (
-                                                                <div key={h} className="flex justify-between items-center text-sm text-primary">
-                                                                    <span className="font-mono text-base">{h.toString().padStart(2, '0')}:00</span>
-                                                                    <span className="font-medium tracking-wide">{stadium.price_per_hour.toLocaleString()} so'm</span>
-                                                                </div>
-                                                            ))}
+                                                            {selectedHours.sort((a, b) => a - b).map(h => {
+                                                                const isDiscount = availability?.discount_hours?.includes(h);
+                                                                const price = isDiscount ? availability!.discount_price : stadium.price_per_hour;
+                                                                return (
+                                                                    <div key={h} className="flex justify-between items-center text-sm">
+                                                                        <span className="font-mono text-base text-primary">{h.toString().padStart(2, '0')}:00</span>
+                                                                        <div className="flex items-center gap-2">
+                                                                            {isDiscount && (
+                                                                                <span className="text-xs line-through text-muted-foreground">{stadium.price_per_hour.toLocaleString()}</span>
+                                                                            )}
+                                                                            <span className={`font-medium tracking-wide ${isDiscount ? 'text-yellow-600 dark:text-yellow-400' : 'text-primary'}`}>
+                                                                                {price.toLocaleString()} so'm
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
                                                         </div>
 
                                                         <div className="flex justify-between items-center pt-2 border-t border-border">
                                                             <span className="font-bold text-lg">Jami summa</span>
                                                             <span className="font-bold text-lg text-primary">
-                                                                {(stadium.price_per_hour * selectedHours.length).toLocaleString()} so'm
+                                                                {selectedHours.reduce((total, h) => {
+                                                                    const isDiscount = availability?.discount_hours?.includes(h);
+                                                                    return total + (isDiscount ? availability!.discount_price : stadium.price_per_hour);
+                                                                }, 0).toLocaleString()} so'm
                                                             </span>
                                                         </div>
                                                     </div>
@@ -486,7 +537,10 @@ const StadiumDetail = () => {
                                                     </div>
                                                     <div className="flex justify-between">
                                                         <span className="text-muted-foreground">Jami</span>
-                                                        <span className="font-medium">{(stadium.price_per_hour * selectedHours.length).toLocaleString()} so'm</span>
+                                                        <span className="font-medium">{selectedHours.reduce((total, h) => {
+                                                            const isDiscount = availability?.discount_hours?.includes(h);
+                                                            return total + (isDiscount ? availability!.discount_price : stadium.price_per_hour);
+                                                        }, 0).toLocaleString()} so'm</span>
                                                     </div>
                                                     <div className="flex justify-between">
                                                         <span className="text-muted-foreground">Holat</span>

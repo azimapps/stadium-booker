@@ -341,6 +341,8 @@ export interface BookingAvailability {
     timetable_hours: number[];
     booked_hours: number[];
     available_hours: number[];
+    discount_hours: number[];
+    discount_price: number;
 }
 
 export interface CreateBookingRequest {
