@@ -278,21 +278,20 @@ const StadiumDetail = () => {
                             {/* Location Map */}
                             {stadium.latitude && stadium.longitude && (
                                 <div className="space-y-4">
-                                    <h2 className="text-xl font-semibold">{t('stadiums.location') || 'Joylashuv'}</h2>
-                                    <a
-                                        href={`https://yandex.uz/maps/?pt=${stadium.longitude},${stadium.latitude}&z=16&l=map`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="block rounded-2xl overflow-hidden border border-border hover:border-primary/50 transition-colors"
-                                    >
-                                        <img
-                                            src={`https://static-maps.yandex.ru/v1?lang=uz_UZ&ll=${stadium.longitude},${stadium.latitude}&z=16&size=600,300&l=map&pt=${stadium.longitude},${stadium.latitude},pm2gnm`}
-                                            alt={`${displayName} xaritada`}
-                                            className="w-full h-[200px] object-cover"
+                                    <h2 className="text-xl font-semibold">Manzil xaritasi</h2>
+                                    <div className="rounded-2xl overflow-hidden border border-border">
+                                        <iframe
+                                            src={`https://maps.google.com/maps?q=${stadium.latitude},${stadium.longitude}&z=16&output=embed`}
+                                            width="100%"
+                                            height="250"
+                                            style={{ border: 0 }}
+                                            allowFullScreen
+                                            loading="lazy"
+                                            referrerPolicy="no-referrer-when-downgrade"
                                         />
-                                    </a>
+                                    </div>
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <MapPin className="w-4 h-4" />
+                                        <MapPin className="w-4 h-4 text-primary" />
                                         <span>{displayAddress}</span>
                                     </div>
                                 </div>
