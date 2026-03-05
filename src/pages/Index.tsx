@@ -13,8 +13,10 @@ const Index = () => {
     <div className="min-h-screen">
       <Header />
       {!isAuthenticated && <Hero />}
-      {isAuthenticated && <TournamentsSection />}
-      <StadiumsSection />
+      <div className={isAuthenticated ? 'pt-24' : ''}>
+        {isAuthenticated && <TournamentsSection />}
+        <StadiumsSection />
+      </div>
       {!isAuthenticated && <FeaturesSection />}
       <Footer />
     </div>

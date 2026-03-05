@@ -7,8 +7,9 @@ import { fetchTournaments, Tournament } from '@/services/api';
 
 const TournamentsSection = () => {
     const { language, t } = useLanguage();
+    const token = localStorage.getItem('token');
     const { data: tournaments, isLoading, error } = useQuery<Tournament[]>({
-        queryKey: ['tournaments'],
+        queryKey: ['tournaments', token],
         queryFn: () => fetchTournaments(),
     });
 
