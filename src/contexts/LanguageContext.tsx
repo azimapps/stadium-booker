@@ -100,6 +100,16 @@ export const translations: Translations = {
   'profile.set_photo': { uz: 'Rasmni o\'rnatish', ru: 'Установить фото' },
   'profile.image_size': { uz: 'Hajmi', ru: 'Размер' }, // Adding for completeness if I update the hardcoded "Size" later
 
+  // Stadium surface types
+  'surface.artificial': { uz: 'Sun\'iy', ru: 'Искусственный' },
+  'surface.natural': { uz: 'Tabiiy', ru: 'Натуральный' },
+  'surface.hybrid': { uz: 'Aralash', ru: 'Гибридный' },
+
+  // Stadium roof types
+  'roof.covered': { uz: 'Yopiq', ru: 'Крытый' },
+  'roof.open': { uz: 'Ochiq', ru: 'Открытый' },
+  'roof.partial': { uz: 'Qisman yopiq', ru: 'Частично крытый' },
+
   // Auth & Common
   'auth.logout': { uz: 'Chiqish', ru: 'Выйти' },
   'auth.logout_title': { uz: 'Tizimdan chiqish', ru: 'Выход из системы' },

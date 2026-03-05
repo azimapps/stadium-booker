@@ -258,12 +258,12 @@ const StadiumDetail = () => {
                                 <div className="p-4 rounded-xl bg-card border border-border flex flex-col items-center text-center">
                                     <Info className="w-6 h-6 text-primary mb-2" />
                                     <span className="text-sm text-muted-foreground">{t('stadiums.surface')}</span>
-                                    <span className="font-semibold capitalize">{stadium.surface_type}</span>
+                                    <span className="font-semibold capitalize">{t(`surface.${stadium.surface_type.toLowerCase()}`) !== `surface.${stadium.surface_type.toLowerCase()}` ? t(`surface.${stadium.surface_type.toLowerCase()}`) : stadium.surface_type}</span>
                                 </div>
                                 <div className="p-4 rounded-xl bg-card border border-border flex flex-col items-center text-center">
                                     <CalendarIcon className="w-6 h-6 text-primary mb-2" />
                                     <span className="text-sm text-muted-foreground">{t('stadiums.roof')}</span>
-                                    <span className="font-semibold capitalize">{stadium.roof_type}</span>
+                                    <span className="font-semibold capitalize">{t(`roof.${stadium.roof_type.toLowerCase()}`) !== `roof.${stadium.roof_type.toLowerCase()}` ? t(`roof.${stadium.roof_type.toLowerCase()}`) : stadium.roof_type}</span>
                                 </div>
                             </div>
 
