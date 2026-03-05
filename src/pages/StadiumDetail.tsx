@@ -249,21 +249,21 @@ const StadiumDetail = () => {
                             </div>
 
                             {/* Quick Stats */}
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                <div className="p-4 rounded-xl bg-card border border-border flex flex-col items-center text-center">
-                                    <Maximize className="w-6 h-6 text-primary mb-2" />
-                                    <span className="text-sm text-muted-foreground">{t('stadiums.size')}</span>
-                                    <span className="font-semibold">{stadium.capacity}</span>
+                            <div className="flex flex-wrap gap-x-6 gap-y-3">
+                                <div className="flex items-center gap-2">
+                                    <Maximize className="w-5 h-5 text-primary flex-shrink-0" />
+                                    <span className="text-sm text-muted-foreground">{t('stadiums.size')}:</span>
+                                    <span className="font-semibold text-sm">{stadium.capacity}</span>
                                 </div>
-                                <div className="p-4 rounded-xl bg-card border border-border flex flex-col items-center text-center">
-                                    <Info className="w-6 h-6 text-primary mb-2" />
-                                    <span className="text-sm text-muted-foreground">{t('stadiums.surface')}</span>
-                                    <span className="font-semibold capitalize">{t(`surface.${stadium.surface_type.toLowerCase()}`) !== `surface.${stadium.surface_type.toLowerCase()}` ? t(`surface.${stadium.surface_type.toLowerCase()}`) : stadium.surface_type}</span>
+                                <div className="flex items-center gap-2">
+                                    <Info className="w-5 h-5 text-primary flex-shrink-0" />
+                                    <span className="text-sm text-muted-foreground">{t('stadiums.surface')}:</span>
+                                    <span className="font-semibold text-sm capitalize">{t(`surface.${stadium.surface_type.toLowerCase()}`) !== `surface.${stadium.surface_type.toLowerCase()}` ? t(`surface.${stadium.surface_type.toLowerCase()}`) : stadium.surface_type}</span>
                                 </div>
-                                <div className="p-4 rounded-xl bg-card border border-border flex flex-col items-center text-center">
-                                    <CalendarIcon className="w-6 h-6 text-primary mb-2" />
-                                    <span className="text-sm text-muted-foreground">{t('stadiums.roof')}</span>
-                                    <span className="font-semibold capitalize">{t(`roof.${stadium.roof_type.toLowerCase()}`) !== `roof.${stadium.roof_type.toLowerCase()}` ? t(`roof.${stadium.roof_type.toLowerCase()}`) : stadium.roof_type}</span>
+                                <div className="flex items-center gap-2">
+                                    <CalendarIcon className="w-5 h-5 text-primary flex-shrink-0" />
+                                    <span className="text-sm text-muted-foreground">{t('stadiums.roof')}:</span>
+                                    <span className="font-semibold text-sm capitalize">{t(`roof.${stadium.roof_type.toLowerCase()}`) !== `roof.${stadium.roof_type.toLowerCase()}` ? t(`roof.${stadium.roof_type.toLowerCase()}`) : stadium.roof_type}</span>
                                 </div>
                             </div>
 
