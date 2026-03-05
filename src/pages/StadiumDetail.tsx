@@ -249,21 +249,33 @@ const StadiumDetail = () => {
                             </div>
 
                             {/* Quick Stats */}
-                            <div className="flex flex-wrap gap-x-6 gap-y-3">
-                                <div className="flex items-center gap-2">
-                                    <Maximize className="w-5 h-5 text-primary flex-shrink-0" />
-                                    <span className="text-sm text-muted-foreground">{t('stadiums.size')}:</span>
-                                    <span className="font-semibold text-sm">{stadium.capacity}</span>
+                            <div className="grid grid-cols-3 gap-3">
+                                <div className="flex flex-col items-center text-center gap-2">
+                                    <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
+                                        <Maximize className="w-6 h-6 text-primary" />
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-sm">{stadium.capacity}</p>
+                                        <p className="text-xs text-muted-foreground">{t('stadiums.size')}</p>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Info className="w-5 h-5 text-primary flex-shrink-0" />
-                                    <span className="text-sm text-muted-foreground">{t('stadiums.surface')}:</span>
-                                    <span className="font-semibold text-sm capitalize">{t(`surface.${stadium.surface_type.toLowerCase()}`) !== `surface.${stadium.surface_type.toLowerCase()}` ? t(`surface.${stadium.surface_type.toLowerCase()}`) : stadium.surface_type}</span>
+                                <div className="flex flex-col items-center text-center gap-2">
+                                    <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
+                                        <CalendarIcon className="w-6 h-6 text-primary" />
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-sm capitalize">{t(`roof.${stadium.roof_type.toLowerCase()}`) !== `roof.${stadium.roof_type.toLowerCase()}` ? t(`roof.${stadium.roof_type.toLowerCase()}`) : stadium.roof_type}</p>
+                                        <p className="text-xs text-muted-foreground">{t('stadiums.roof')}</p>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <CalendarIcon className="w-5 h-5 text-primary flex-shrink-0" />
-                                    <span className="text-sm text-muted-foreground">{t('stadiums.roof')}:</span>
-                                    <span className="font-semibold text-sm capitalize">{t(`roof.${stadium.roof_type.toLowerCase()}`) !== `roof.${stadium.roof_type.toLowerCase()}` ? t(`roof.${stadium.roof_type.toLowerCase()}`) : stadium.roof_type}</span>
+                                <div className="flex flex-col items-center text-center gap-2">
+                                    <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
+                                        <Info className="w-6 h-6 text-primary" />
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-sm capitalize">{t(`surface.${stadium.surface_type.toLowerCase()}`) !== `surface.${stadium.surface_type.toLowerCase()}` ? t(`surface.${stadium.surface_type.toLowerCase()}`) : stadium.surface_type}</p>
+                                        <p className="text-xs text-muted-foreground">{t('stadiums.surface')}</p>
+                                    </div>
                                 </div>
                             </div>
 
