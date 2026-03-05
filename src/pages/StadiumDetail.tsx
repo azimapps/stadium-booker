@@ -281,13 +281,12 @@ const StadiumDetail = () => {
                                     <h2 className="text-xl font-semibold">Manzil xaritasi</h2>
                                     <div className="rounded-2xl overflow-hidden border border-border">
                                         <iframe
-                                            src={`https://maps.google.com/maps?q=${stadium.latitude},${stadium.longitude}&z=16&output=embed`}
+                                            src={`https://yandex.uz/map-widget/v1/?ll=${stadium.longitude}%2C${stadium.latitude}&z=16&pt=${stadium.longitude}%2C${stadium.latitude}%2Cpm2rdm`}
                                             width="100%"
                                             height="250"
                                             style={{ border: 0 }}
                                             allowFullScreen
                                             loading="lazy"
-                                            referrerPolicy="no-referrer-when-downgrade"
                                         />
                                     </div>
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
