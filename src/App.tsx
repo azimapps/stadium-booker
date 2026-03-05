@@ -14,6 +14,7 @@ import StadiumDetail from "./pages/StadiumDetail";
 import Media from "./pages/Media";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
+import PaymentStatus from "./pages/PaymentStatus";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/tournaments" element={<Tournaments />} />
             <Route path="/media" element={<Media />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/payments/:orderId" element={<PaymentStatus />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

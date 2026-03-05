@@ -100,6 +100,26 @@ export const fetchTournaments = async (): Promise<Tournament[]> => {
     }
 };
 
+export interface LegalDocument {
+    title_uz: string;
+    title_ru: string;
+    content_uz: string;
+    content_ru: string;
+    updated_at: string;
+}
+
+export const fetchTerms = async (): Promise<LegalDocument> => {
+    const response = await fetch(`${BASE_URL}/legal/terms`);
+    if (!response.ok) throw new Error('Failed to fetch terms');
+    return response.json();
+};
+
+export const fetchPrivacy = async (): Promise<LegalDocument> => {
+    const response = await fetch(`${BASE_URL}/legal/privacy`);
+    if (!response.ok) throw new Error('Failed to fetch privacy');
+    return response.json();
+};
+
 export const sendOtp = async (phone: string) => {
     const response = await fetch(`${BASE_URL}/users/send-otp`, {
         method: 'POST',
@@ -130,6 +150,68 @@ export const verifyOtp = async (phone: string, otp_code: string) => {
         throw new Error(errorData.detail || 'Failed to verify OTP');
     }
 
+    return response.json();
+};
+
+// Payment APIs
+export interface PaymentOrder {
+    order_id: number;
+    amount: number;
+    checkout_url?: string;
+    payment_url?: string;
+}
+
+export interface PaymentStatus {
+    order_id: number;
+    status: 'pending' | 'paid' | 'cancelled';
+    amount: number;
+}
+
+export const createPaymeOrder = async (token: string, data: { stadium_book_id?: number; tournament_registration_id?: number }): Promise<PaymentOrder> => {
+    const response = await fetch(`${BASE_URL}/client/payme/order`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || 'Failed to create Payme order');
+    }
+    return response.json();
+};
+
+export const createClickOrder = async (token: string, data: { stadium_book_id?: number; tournament_registration_id?: number }): Promise<PaymentOrder> => {
+    const response = await fetch(`${BASE_URL}/client/click/order`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || 'Failed to create Click order');
+    }
+    return response.json();
+};
+
+export const checkPaymeStatus = async (token: string, orderId: number): Promise<PaymentStatus> => {
+    const response = await fetch(`${BASE_URL}/client/payme/status/${orderId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!response.ok) throw new Error('Failed to check Payme status');
+    return response.json();
+};
+
+export const checkClickStatus = async (token: string, orderId: number): Promise<PaymentStatus> => {
+    const response = await fetch(`${BASE_URL}/client/click/status/${orderId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!response.ok) throw new Error('Failed to check Click status');
     return response.json();
 };
 

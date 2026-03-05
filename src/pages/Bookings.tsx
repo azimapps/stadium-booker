@@ -1,14 +1,15 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { Calendar, Clock, MapPin, AlertTriangle, CheckCircle2, Banknote } from 'lucide-react';
+import { Calendar, Clock, MapPin, AlertTriangle, CheckCircle2, Banknote, Loader2, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchMyBookings, Booking } from '@/services/api';
+import { fetchMyBookings, createPaymeOrder, createClickOrder, Booking } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { format, parseISO, differenceInSeconds } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -20,13 +21,12 @@ const BookingTimer = ({ deadline }: { deadline: string }) => {
         const calculateTimeLeft = () => {
             if (!deadline) return;
 
-            const now = new Date();
-            // Handle common DB formats like "YYYY-MM-DD HH:mm:ss"
             let isoDeadline = deadline.replace(' ', 'T');
             if (!isoDeadline.includes('Z') && !isoDeadline.includes('+')) {
                 isoDeadline += 'Z';
             }
 
+            const now = new Date();
             const end = new Date(isoDeadline);
             const diff = Math.floor((end.getTime() - now.getTime()) / 1000);
             setTimeLeft(Math.max(0, diff));
@@ -58,20 +58,39 @@ const Bookings = () => {
     const { token, isAuthenticated } = useAuth();
     const navigate = useNavigate();
 
+    const [paymentBooking, setPaymentBooking] = useState<Booking | null>(null);
+    const [paymentLoading, setPaymentLoading] = useState<'payme' | 'click' | null>(null);
+
     const { data: bookings, isLoading, error } = useQuery({
         queryKey: ['my-bookings'],
         queryFn: () => fetchMyBookings(token!),
         enabled: !!token,
-        refetchInterval: 5000 // Poll every 5 seconds to keep status updated
+        refetchInterval: 5000
     });
 
     useEffect(() => {
         if (!isAuthenticated && !isLoading) {
-            // Optional: redirect or just show empty state
-            // navigate('/auth'); 
         }
     }, [isAuthenticated, isLoading, navigate]);
 
+    const handlePayment = async (method: 'payme' | 'click') => {
+        if (!paymentBooking || !token) return;
+        setPaymentLoading(method);
+
+        try {
+            const orderData = { stadium_book_id: paymentBooking.id };
+            if (method === 'payme') {
+                const order = await createPaymeOrder(token, orderData);
+                window.location.href = order.checkout_url!;
+            } else {
+                const order = await createClickOrder(token, orderData);
+                window.location.href = order.payment_url!;
+            }
+        } catch (error: any) {
+            toast.error(error.message || "To'lov yaratishda xatolik yuz berdi");
+            setPaymentLoading(null);
+        }
+    };
 
     const getStatusBadge = (status: Booking['status'], deadline: string | null) => {
         if (status === 'cancelled') {
@@ -120,7 +139,6 @@ const Bookings = () => {
                                         <h3 className="text-xl font-bold">
                                             {language === 'uz' ? booking.stadium.name_uz : booking.stadium.name_ru}
                                         </h3>
-                                        {/* Always show badge based on status */}
                                         {booking.status !== 'in_progress' && getStatusBadge(booking.status, booking.payment_deadline)}
                                     </div>
 
@@ -156,7 +174,7 @@ const Bookings = () => {
 
                                             <Button
                                                 className="w-full h-12 text-lg rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
-                                                onClick={() => toast.info('To\'lov tizimi tez orada qo\'shiladi')}
+                                                onClick={() => setPaymentBooking(booking)}
                                             >
                                                 To'lov qilish
                                             </Button>
@@ -180,6 +198,77 @@ const Bookings = () => {
                 </div>
             </main>
             <Footer />
+
+            {/* Payment Method Selection Dialog */}
+            <Dialog open={paymentBooking !== null} onOpenChange={(open) => { if (!open) { setPaymentBooking(null); setPaymentLoading(null); } }}>
+                <DialogContent className="sm:max-w-[400px] rounded-3xl p-0 overflow-hidden gap-0">
+                    <DialogHeader className="px-6 pt-6 pb-4">
+                        <DialogTitle className="text-xl font-bold text-center">To'lov usulini tanlang</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="px-6 pb-2">
+                        <div className="bg-muted/30 rounded-xl p-4 space-y-2 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Stadion</span>
+                                <span className="font-medium">
+                                    {paymentBooking && (language === 'uz' ? paymentBooking.stadium.name_uz : paymentBooking.stadium.name_ru)}
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Summa</span>
+                                <span className="font-bold text-primary">{paymentBooking?.price?.toLocaleString()} so'm</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="px-6 pb-6 pt-2 space-y-3">
+                        {/* Payme Button */}
+                        <button
+                            onClick={() => handlePayment('payme')}
+                            disabled={paymentLoading !== null}
+                            className="w-full flex items-center justify-center gap-3 h-14 rounded-xl bg-[#00CCCC] hover:bg-[#00BBBB] text-white font-bold text-lg transition-colors disabled:opacity-60"
+                        >
+                            {paymentLoading === 'payme' ? (
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                                <>
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                        <rect width="24" height="24" rx="4" fill="white"/>
+                                        <path d="M4 8h4v8H4V8zm6 0h4v8h-4V8zm6 0h4v8h-4V8z" fill="#00CCCC"/>
+                                    </svg>
+                                    Payme
+                                </>
+                            )}
+                        </button>
+
+                        {/* Click Button */}
+                        <button
+                            onClick={() => handlePayment('click')}
+                            disabled={paymentLoading !== null}
+                            className="w-full flex items-center justify-center gap-3 h-14 rounded-xl bg-[#0066FF] hover:bg-[#0055DD] text-white font-bold text-lg transition-colors disabled:opacity-60"
+                        >
+                            {paymentLoading === 'click' ? (
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                                <>
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                        <rect width="24" height="24" rx="4" fill="white"/>
+                                        <path d="M12 4l8 8-8 8-8-8 8-8z" fill="#0066FF"/>
+                                    </svg>
+                                    Click
+                                </>
+                            )}
+                        </button>
+
+                        <button
+                            onClick={() => { setPaymentBooking(null); setPaymentLoading(null); }}
+                            className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
+                        >
+                            Bekor qilish
+                        </button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
