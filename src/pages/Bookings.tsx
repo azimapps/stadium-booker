@@ -3,7 +3,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Calendar, Clock, Banknote, Loader2, CheckCircle2, Timer, MapPin } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchMyBookings, createPaymeOrder, createClickOrder, Booking } from '@/services/api';
+import { fetchMyBookings, fetchStadiums, createPaymeOrder, createClickOrder, Booking } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -107,11 +107,23 @@ const Bookings = () => {
     const [paymentBooking, setPaymentBooking] = useState<Booking | null>(null);
     const [paymentLoading, setPaymentLoading] = useState<'payme' | 'click' | null>(null);
 
-    const { data: bookings, isLoading, error } = useQuery({
+    const { data: bookingsRaw, isLoading, error } = useQuery({
         queryKey: ['my-bookings'],
         queryFn: () => fetchMyBookings(token!),
         enabled: !!token,
         refetchInterval: 5000
+    });
+
+    // Fetch full stadium data to get addresses
+    const { data: stadiums } = useQuery({
+        queryKey: ['stadiums-all'],
+        queryFn: () => fetchStadiums(),
+    });
+
+    // Enrich bookings with full stadium data (including address)
+    const bookings = bookingsRaw?.map(booking => {
+        const fullStadium = stadiums?.find(s => s.id === booking.stadium_id);
+        return fullStadium ? { ...booking, stadium: { ...booking.stadium, ...fullStadium } } : booking;
     });
 
     useEffect(() => {
