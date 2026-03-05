@@ -2,8 +2,17 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { checkClickStatus, checkPaymeStatus, fetchMyBookings } from '@/services/api';
+import { checkClickStatus, checkPaymeStatus } from '@/services/api';
 import { CheckCircle2, XCircle, Loader2, Globe, Calendar, Clock, Monitor } from 'lucide-react';
+import { useMemo } from 'react';
+
+interface PendingBooking {
+    stadium_name_uz: string;
+    stadium_name_ru: string;
+    date: string | null;
+    hours: number[];
+    price: number | null;
+}
 
 const PaymentStatus = () => {
     const { orderId } = useParams<{ orderId: string }>();
@@ -27,20 +36,17 @@ const PaymentStatus = () => {
         },
     });
 
-    const { data: bookings } = useQuery({
-        queryKey: ['my-bookings-payment'],
-        queryFn: () => fetchMyBookings(token!),
-        enabled: !!token && !!status && status.status !== 'pending',
-    });
-
-    // Get the most recent paid or in_progress booking as the one linked to this payment
-    const booking = bookings
-        ?.filter(b => b.status === 'paid_online' || b.status === 'in_progress')
-        ?.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        ?.[0];
+    // Read booking details saved before payment redirect
+    const booking = useMemo<PendingBooking | null>(() => {
+        try {
+            const saved = localStorage.getItem('pending_payment_booking');
+            if (saved) return JSON.parse(saved);
+        } catch { /* ignore */ }
+        return null;
+    }, []);
 
     const stadiumName = booking
-        ? (language === 'uz' ? booking.stadium.name_uz : booking.stadium.name_ru)
+        ? (language === 'uz' ? booking.stadium_name_uz : booking.stadium_name_ru)
         : undefined;
 
     const formatHours = (hours: number[]) => {
@@ -105,58 +111,53 @@ const PaymentStatus = () => {
                     )}
 
                     {/* Booking details card */}
-                    {booking && (
-                        <div className="bg-card border border-border rounded-2xl p-5 mb-8 text-left space-y-0">
-                            {/* Stadium name */}
-                            <div className="flex items-center gap-3 py-4">
-                                <Globe className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                                <span className="font-bold">{stadiumName}</span>
-                            </div>
-                            <div className="border-t border-border" />
+                    <div className="bg-card border border-border rounded-2xl p-5 mb-8 text-left space-y-0">
+                        {/* Stadium name */}
+                        {stadiumName && (
+                            <>
+                                <div className="flex items-center gap-3 py-4">
+                                    <Globe className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                                    <span className="font-bold">{stadiumName}</span>
+                                </div>
+                                <div className="border-t border-border" />
+                            </>
+                        )}
 
-                            {/* Date */}
-                            {booking.date && (
-                                <>
-                                    <div className="flex items-center gap-3 py-4">
-                                        <Calendar className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                                        <span>{booking.date}</span>
-                                    </div>
-                                    <div className="border-t border-border" />
-                                </>
-                            )}
+                        {/* Date */}
+                        {booking?.date && (
+                            <>
+                                <div className="flex items-center gap-3 py-4">
+                                    <Calendar className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                                    <span>{booking.date}</span>
+                                </div>
+                                <div className="border-t border-border" />
+                            </>
+                        )}
 
-                            {/* Time */}
-                            {booking.hours && booking.hours.length > 0 && (
-                                <>
-                                    <div className="flex items-center gap-3 py-4">
-                                        <Clock className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                                        <span>{formatHours(booking.hours)}</span>
-                                    </div>
-                                    <div className="border-t border-border" />
-                                </>
-                            )}
+                        {/* Time */}
+                        {booking?.hours && booking.hours.length > 0 && (
+                            <>
+                                <div className="flex items-center gap-3 py-4">
+                                    <Clock className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                                    <span>{formatHours(booking.hours)}</span>
+                                </div>
+                                <div className="border-t border-border" />
+                            </>
+                        )}
 
-                            {/* Price */}
-                            <div className="flex items-center gap-3 py-4">
-                                <Monitor className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                                <span className="font-bold">{(booking.price ?? status.amount).toLocaleString()} so'm</span>
-                            </div>
+                        {/* Price */}
+                        <div className="flex items-center gap-3 py-4">
+                            <Monitor className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                            <span className="font-bold">{(booking?.price ?? status.amount).toLocaleString()} so'm</span>
                         </div>
-                    )}
-
-                    {/* If no booking details found, just show amount */}
-                    {!booking && (
-                        <div className="bg-card border border-border rounded-2xl p-5 mb-8 text-left">
-                            <div className="flex items-center gap-3 py-4">
-                                <Monitor className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                                <span className="font-bold">{status.amount.toLocaleString()} so'm</span>
-                            </div>
-                        </div>
-                    )}
+                    </div>
 
                     {/* Continue button */}
                     <button
-                        onClick={() => navigate('/bookings')}
+                        onClick={() => {
+                            localStorage.removeItem('pending_payment_booking');
+                            navigate('/bookings');
+                        }}
                         className="w-full h-14 rounded-2xl bg-green-500 text-white font-bold text-lg hover:bg-green-600 transition-colors"
                     >
                         Davom etish
@@ -181,32 +182,21 @@ const PaymentStatus = () => {
                 </p>
 
                 {/* Details card */}
-                {booking && (
-                    <div className="bg-card border border-border rounded-2xl p-5 mb-8 text-left space-y-0">
-                        {stadiumName && (
-                            <>
-                                <div className="flex items-center gap-3 py-4">
-                                    <Globe className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                                    <span className="font-bold">{stadiumName}</span>
-                                </div>
-                                <div className="border-t border-border" />
-                            </>
-                        )}
-                        <div className="flex items-center gap-3 py-4">
-                            <Monitor className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                            <span className="font-bold">{(booking.price ?? status.amount).toLocaleString()} so'm</span>
-                        </div>
+                <div className="bg-card border border-border rounded-2xl p-5 mb-8 text-left space-y-0">
+                    {stadiumName && (
+                        <>
+                            <div className="flex items-center gap-3 py-4">
+                                <Globe className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                                <span className="font-bold">{stadiumName}</span>
+                            </div>
+                            <div className="border-t border-border" />
+                        </>
+                    )}
+                    <div className="flex items-center gap-3 py-4">
+                        <Monitor className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                        <span className="font-bold">{(booking?.price ?? status.amount).toLocaleString()} so'm</span>
                     </div>
-                )}
-
-                {!booking && (
-                    <div className="bg-card border border-border rounded-2xl p-5 mb-8 text-left">
-                        <div className="flex items-center gap-3 py-4">
-                            <Monitor className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                            <span className="font-bold">{status.amount.toLocaleString()} so'm</span>
-                        </div>
-                    </div>
-                )}
+                </div>
 
                 <div className="space-y-3">
                     <button
@@ -216,7 +206,10 @@ const PaymentStatus = () => {
                         Qayta urinish
                     </button>
                     <button
-                        onClick={() => navigate('/')}
+                        onClick={() => {
+                            localStorage.removeItem('pending_payment_booking');
+                            navigate('/');
+                        }}
                         className="w-full h-14 rounded-2xl border border-border text-foreground font-medium text-lg hover:bg-muted transition-colors"
                     >
                         Bosh sahifaga

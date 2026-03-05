@@ -79,6 +79,14 @@ const Bookings = () => {
 
         try {
             const orderData = { stadium_book_id: paymentBooking.id };
+            // Save booking details for payment status page
+            localStorage.setItem('pending_payment_booking', JSON.stringify({
+                stadium_name_uz: paymentBooking.stadium.name_uz,
+                stadium_name_ru: paymentBooking.stadium.name_ru,
+                date: paymentBooking.date,
+                hours: paymentBooking.hours,
+                price: paymentBooking.price,
+            }));
             if (method === 'payme') {
                 const order = await createPaymeOrder(token, orderData);
                 window.location.href = order.checkout_url!;
