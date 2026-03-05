@@ -3,7 +3,47 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { checkClickStatus, checkPaymeStatus, fetchMyBookings } from '@/services/api';
-import { CheckCircle2, XCircle, Loader2, Globe, Calendar, Clock, Monitor } from 'lucide-react';
+import { CheckCircle2, XCircle, Loader2, Globe, Calendar, Clock, Monitor, Timer } from 'lucide-react';
+import { useEffect, useState } from 'react';
+
+const CountdownTimer = ({ date, hours }: { date: string; hours: number[] }) => {
+    const [timeLeft, setTimeLeft] = useState('');
+
+    useEffect(() => {
+        const startHour = Math.min(...hours);
+        const targetDate = new Date(`${date}T${startHour.toString().padStart(2, '0')}:00:00`);
+
+        const update = () => {
+            const now = new Date();
+            const diff = targetDate.getTime() - now.getTime();
+
+            if (diff <= 0) {
+                setTimeLeft('Boshlandi!');
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hrs = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+            const time = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            setTimeLeft(days > 0 ? `${days}d ${time}` : time);
+        };
+
+        update();
+        const interval = setInterval(update, 1000);
+        return () => clearInterval(interval);
+    }, [date, hours]);
+
+    return (
+        <div className="flex items-center justify-center gap-3 bg-primary/10 border border-primary/30 rounded-2xl py-4 px-5">
+            <Timer className="w-6 h-6 text-green-500 flex-shrink-0" />
+            <span className="text-sm font-medium">Boshlanishiga</span>
+            <span className="text-xl font-bold text-green-500 font-mono">{timeLeft}</span>
+        </div>
+    );
+};
 
 const PaymentStatus = () => {
     const { orderId } = useParams<{ orderId: string }>();
@@ -139,6 +179,12 @@ const PaymentStatus = () => {
                             <span className="font-bold">{(booking?.price ?? status.amount).toLocaleString()} so'm</span>
                         </div>
                     </div>
+
+                    {booking?.date && booking?.hours && booking.hours.length > 0 && (
+                        <div className="mb-6">
+                            <CountdownTimer date={booking.date} hours={booking.hours} />
+                        </div>
+                    )}
 
                     <button
                         onClick={() => navigate('/bookings')}
