@@ -2,17 +2,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { checkClickStatus, checkPaymeStatus } from '@/services/api';
+import { checkClickStatus, checkPaymeStatus, fetchMyBookings } from '@/services/api';
 import { CheckCircle2, XCircle, Loader2, Globe, Calendar, Clock, Monitor } from 'lucide-react';
-import { useMemo } from 'react';
-
-interface PendingBooking {
-    stadium_name_uz: string;
-    stadium_name_ru: string;
-    date: string | null;
-    hours: number[];
-    price: number | null;
-}
 
 const PaymentStatus = () => {
     const { orderId } = useParams<{ orderId: string }>();
@@ -36,17 +27,20 @@ const PaymentStatus = () => {
         },
     });
 
-    // Read booking details saved before payment redirect
-    const booking = useMemo<PendingBooking | null>(() => {
-        try {
-            const saved = localStorage.getItem('pending_payment_booking');
-            if (saved) return JSON.parse(saved);
-        } catch { /* ignore */ }
-        return null;
-    }, []);
+    // Fetch user's bookings to get details (stadium, date, hours, price)
+    const { data: bookings } = useQuery({
+        queryKey: ['my-bookings-payment', orderId],
+        queryFn: () => fetchMyBookings(token!),
+        enabled: !!token && !!status,
+    });
+
+    // Find the most recently updated booking that matches
+    const booking = bookings
+        ?.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+        ?.[0];
 
     const stadiumName = booking
-        ? (language === 'uz' ? booking.stadium_name_uz : booking.stadium_name_ru)
+        ? (language === 'uz' ? booking.stadium.name_uz : booking.stadium.name_ru)
         : undefined;
 
     const formatHours = (hours: number[]) => {
@@ -98,7 +92,6 @@ const PaymentStatus = () => {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background px-4">
                 <div className="text-center max-w-sm w-full">
-                    {/* Green checkmark circle */}
                     <div className="w-24 h-24 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-6">
                         <CheckCircle2 className="w-14 h-14 text-white" strokeWidth={2.5} />
                     </div>
@@ -110,9 +103,7 @@ const PaymentStatus = () => {
                         </p>
                     )}
 
-                    {/* Booking details card */}
                     <div className="bg-card border border-border rounded-2xl p-5 mb-8 text-left space-y-0">
-                        {/* Stadium name */}
                         {stadiumName && (
                             <>
                                 <div className="flex items-center gap-3 py-4">
@@ -123,7 +114,6 @@ const PaymentStatus = () => {
                             </>
                         )}
 
-                        {/* Date */}
                         {booking?.date && (
                             <>
                                 <div className="flex items-center gap-3 py-4">
@@ -134,7 +124,6 @@ const PaymentStatus = () => {
                             </>
                         )}
 
-                        {/* Time */}
                         {booking?.hours && booking.hours.length > 0 && (
                             <>
                                 <div className="flex items-center gap-3 py-4">
@@ -145,19 +134,14 @@ const PaymentStatus = () => {
                             </>
                         )}
 
-                        {/* Price */}
                         <div className="flex items-center gap-3 py-4">
                             <Monitor className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                             <span className="font-bold">{(booking?.price ?? status.amount).toLocaleString()} so'm</span>
                         </div>
                     </div>
 
-                    {/* Continue button */}
                     <button
-                        onClick={() => {
-                            localStorage.removeItem('pending_payment_booking');
-                            navigate('/bookings');
-                        }}
+                        onClick={() => navigate('/bookings')}
                         className="w-full h-14 rounded-2xl bg-green-500 text-white font-bold text-lg hover:bg-green-600 transition-colors"
                     >
                         Davom etish
@@ -171,7 +155,6 @@ const PaymentStatus = () => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-background px-4">
             <div className="text-center max-w-sm w-full">
-                {/* Red X circle */}
                 <div className="w-24 h-24 rounded-full bg-red-500 flex items-center justify-center mx-auto mb-6">
                     <XCircle className="w-14 h-14 text-white" strokeWidth={2.5} />
                 </div>
@@ -181,7 +164,6 @@ const PaymentStatus = () => {
                     To'lov bekor qilindi yoki xatolik yuz berdi. Qayta urinib ko'ring.
                 </p>
 
-                {/* Details card */}
                 <div className="bg-card border border-border rounded-2xl p-5 mb-8 text-left space-y-0">
                     {stadiumName && (
                         <>
@@ -206,10 +188,7 @@ const PaymentStatus = () => {
                         Qayta urinish
                     </button>
                     <button
-                        onClick={() => {
-                            localStorage.removeItem('pending_payment_booking');
-                            navigate('/');
-                        }}
+                        onClick={() => navigate('/')}
                         className="w-full h-14 rounded-2xl border border-border text-foreground font-medium text-lg hover:bg-muted transition-colors"
                     >
                         Bosh sahifaga
