@@ -325,7 +325,7 @@ export interface Booking {
     date: string | null;
     hours: number[];
     price: number | null;
-    status: 'in_progress' | 'paid_online' | 'assigned_by_admin' | 'cancelled';
+    status: 'in_progress' | 'paid_online' | 'partially_paid' | 'assigned_by_admin' | 'cancelled';
     payment_deadline: string | null;
     assigned_by_manager_id: number | null;
     is_active: boolean;

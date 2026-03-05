@@ -1,11 +1,10 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { Calendar, Clock, MapPin, AlertTriangle, CheckCircle2, Banknote, Loader2, X } from 'lucide-react';
+import { Calendar, Clock, Banknote, Loader2, CheckCircle2, Timer } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMyBookings, createPaymeOrder, createClickOrder, Booking } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { format, parseISO } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -53,6 +52,53 @@ const BookingTimer = ({ deadline }: { deadline: string }) => {
     );
 };
 
+const StartCountdown = ({ date, hours }: { date: string; hours: number[] }) => {
+    const [timeLeft, setTimeLeft] = useState('');
+
+    useEffect(() => {
+        const startHour = Math.min(...hours);
+        const targetDate = new Date(`${date}T${startHour.toString().padStart(2, '0')}:00:00`);
+
+        const update = () => {
+            const now = new Date();
+            const diff = targetDate.getTime() - now.getTime();
+
+            if (diff <= 0) {
+                setTimeLeft('Boshlandi!');
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hrs = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+            const time = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            setTimeLeft(days > 0 ? `${days}d ${time}` : time);
+        };
+
+        update();
+        const interval = setInterval(update, 1000);
+        return () => clearInterval(interval);
+    }, [date, hours]);
+
+    return (
+        <div className="flex items-center justify-center gap-3 bg-primary/10 border border-primary/30 rounded-xl py-3 px-4">
+            <Timer className="w-5 h-5 text-green-500 flex-shrink-0" />
+            <span className="text-sm font-medium">Boshlanishiga</span>
+            <span className="text-lg font-bold text-green-500 font-mono">{timeLeft}</span>
+        </div>
+    );
+};
+
+const formatHourRange = (hours: number[]) => {
+    if (!hours || hours.length === 0) return '';
+    const sorted = [...hours].sort((a, b) => a - b);
+    const start = `${sorted[0].toString().padStart(2, '0')}:00`;
+    const end = `${(sorted[sorted.length - 1] + 1).toString().padStart(2, '0')}:00`;
+    return `${start} — ${end}`;
+};
+
 const Bookings = () => {
     const { t, language } = useLanguage();
     const { token, isAuthenticated } = useAuth();
@@ -79,14 +125,6 @@ const Bookings = () => {
 
         try {
             const orderData = { stadium_book_id: paymentBooking.id };
-            // Save booking details for payment status page
-            localStorage.setItem('pending_payment_booking', JSON.stringify({
-                stadium_name_uz: paymentBooking.stadium.name_uz,
-                stadium_name_ru: paymentBooking.stadium.name_ru,
-                date: paymentBooking.date,
-                hours: paymentBooking.hours,
-                price: paymentBooking.price,
-            }));
             if (method === 'payme') {
                 const order = await createPaymeOrder(token, orderData);
                 window.location.href = order.checkout_url!;
@@ -100,21 +138,29 @@ const Bookings = () => {
         }
     };
 
-    const getStatusBadge = (status: Booking['status'], deadline: string | null) => {
-        if (status === 'cancelled') {
-            return <Badge variant="destructive">Cancelled / Expired</Badge>;
-        }
-
+    const getStatusBadge = (status: Booking['status']) => {
         switch (status) {
             case 'in_progress':
-                return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">Payment Pending</Badge>;
+                return <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30 hover:bg-yellow-500/30">To'lov kutilmoqda</Badge>;
             case 'paid_online':
-                return <Badge variant="default" className="bg-green-600">Paid Online</Badge>;
+                return <Badge variant="default" className="bg-green-600 hover:bg-green-700">To'langan</Badge>;
+            case 'partially_paid':
+                return <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30 hover:bg-blue-500/30">Qisman to'langan</Badge>;
             case 'assigned_by_admin':
-                return <Badge variant="default" className="bg-blue-600">Confirmed</Badge>;
+                return <Badge variant="default" className="bg-blue-600 hover:bg-blue-700">Tasdiqlangan</Badge>;
+            case 'cancelled':
+                return <Badge variant="destructive">Bekor qilingan</Badge>;
             default:
                 return <Badge variant="outline">{status}</Badge>;
         }
+    };
+
+    // Check if booking start time is in the future
+    const isUpcoming = (booking: Booking) => {
+        if (!booking.date || !booking.hours || booking.hours.length === 0) return false;
+        const startHour = Math.min(...booking.hours);
+        const startTime = new Date(`${booking.date}T${startHour.toString().padStart(2, '0')}:00:00`);
+        return startTime.getTime() > Date.now();
     };
 
     return (
@@ -143,43 +189,63 @@ const Bookings = () => {
                         <div className="space-y-4">
                             {bookings.map((booking) => (
                                 <div key={booking.id} className="bg-card border border-border rounded-3xl p-6 shadow-sm hover:shadow-md transition-all">
+                                    {/* Header: stadium name + status badge */}
                                     <div className="flex justify-between items-start mb-4">
-                                        <h3 className="text-xl font-bold">
+                                        <h3 className="text-xl font-bold flex-1 mr-3">
                                             {language === 'uz' ? booking.stadium.name_uz : booking.stadium.name_ru}
                                         </h3>
-                                        {booking.status !== 'in_progress' && getStatusBadge(booking.status, booking.payment_deadline)}
+                                        {getStatusBadge(booking.status)}
                                     </div>
 
-                                    <div className="space-y-3 mb-6">
+                                    {/* Booking details */}
+                                    <div className="space-y-3 mb-4">
                                         <div className="flex items-center gap-3 text-muted-foreground">
-                                            <Calendar className="w-5 h-5" />
+                                            <Calendar className="w-5 h-5 flex-shrink-0" />
                                             <span className="font-medium text-foreground">
-                                                {booking.date ? format(parseISO(booking.date), 'yyyy-MM-dd') : 'Recurring'}
+                                                {booking.date || 'Recurring'}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-3 text-muted-foreground">
-                                            <Clock className="w-5 h-5" />
+                                            <Clock className="w-5 h-5 flex-shrink-0" />
                                             <span className="font-medium text-foreground">
-                                                {booking.hours.map(h => `${h.toString().padStart(2, '0')}:00`).join(', ')}
+                                                {formatHourRange(booking.hours)}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-3 text-muted-foreground">
-                                            <Banknote className="w-5 h-5" />
+                                            <Banknote className="w-5 h-5 flex-shrink-0" />
                                             <span className="font-medium text-foreground">
                                                 {booking.price?.toLocaleString()} so'm
                                             </span>
                                         </div>
+
+                                        {/* Payment info for partially paid */}
+                                        {booking.status === 'partially_paid' && (
+                                            <div className="flex items-center gap-3">
+                                                <CheckCircle2 className="w-5 h-5 text-yellow-500 flex-shrink-0" />
+                                                <span className="font-bold text-yellow-500">
+                                                    To'langan: {booking.price?.toLocaleString()} so'm
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
 
+                                    {/* Countdown timer for upcoming bookings */}
+                                    {booking.date && booking.hours && booking.hours.length > 0 &&
+                                     booking.status !== 'cancelled' && isUpcoming(booking) && (
+                                        <div className="mb-4">
+                                            <StartCountdown date={booking.date} hours={booking.hours} />
+                                        </div>
+                                    )}
+
+                                    {/* Payment deadline + pay button for in_progress */}
                                     {booking.status === 'in_progress' && (
-                                        <div className="space-y-4">
+                                        <div className="space-y-3">
                                             {booking.payment_deadline && (
-                                                <div className="flex items-center justify-center gap-2 bg-red-50 text-red-500 py-3 rounded-xl font-bold text-lg">
+                                                <div className="flex items-center justify-center gap-2 bg-red-500/10 text-red-500 py-3 rounded-xl font-bold text-lg">
                                                     <Clock className="w-5 h-5 animate-pulse" />
                                                     <BookingTimer deadline={booking.payment_deadline} />
                                                 </div>
                                             )}
-
                                             <Button
                                                 className="w-full h-12 text-lg rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
                                                 onClick={() => setPaymentBooking(booking)}
@@ -187,6 +253,16 @@ const Bookings = () => {
                                                 To'lov qilish
                                             </Button>
                                         </div>
+                                    )}
+
+                                    {/* Pay remaining for partially paid */}
+                                    {booking.status === 'partially_paid' && (
+                                        <Button
+                                            className="w-full h-12 text-lg rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+                                            onClick={() => setPaymentBooking(booking)}
+                                        >
+                                            Qolganini to'lash
+                                        </Button>
                                     )}
                                 </div>
                             ))}
@@ -200,7 +276,7 @@ const Bookings = () => {
                             <p className="text-muted-foreground max-w-md mb-6">
                                 Siz hali hech qanday maydonni band qilmadingiz. Maydonlarni ko'rish uchun Asosiy sahifaga o'ting.
                             </p>
-                            <Button onClick={() => navigate('/')}>Find a Stadium</Button>
+                            <Button onClick={() => navigate('/')}>Stadion topish</Button>
                         </div>
                     )}
                 </div>
@@ -230,7 +306,6 @@ const Bookings = () => {
                     </div>
 
                     <div className="px-6 pb-6 pt-2 space-y-3">
-                        {/* Payme Button */}
                         <button
                             onClick={() => handlePayment('payme')}
                             disabled={paymentLoading !== null}
@@ -249,7 +324,6 @@ const Bookings = () => {
                             )}
                         </button>
 
-                        {/* Click Button */}
                         <button
                             onClick={() => handlePayment('click')}
                             disabled={paymentLoading !== null}
