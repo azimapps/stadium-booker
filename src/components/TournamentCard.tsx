@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { MapPin, Calendar, CircleDollarSign, Trophy } from 'lucide-react';
@@ -29,6 +30,7 @@ const TournamentCard = ({
     const formattedDate = format(new Date(startTime), 'dd.MM.yyyy HH:mm');
 
     return (
+        <Link to={`/tournaments/${id}`} className="block">
         <Card className="overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2 group">
             <div className="relative h-48 overflow-hidden">
                 <img
@@ -86,6 +88,7 @@ const TournamentCard = ({
                 </div>
             </CardContent>
         </Card>
+        </Link>
     );
 };
 

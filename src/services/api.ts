@@ -32,10 +32,61 @@ export interface Tournament {
     start_time: string;
     end_time: string;
     entrance_fee: number;
+    min_players_per_team: number;
+    max_players_per_team: number;
+    max_players_tournament: number;
+    cover_image?: string;
     is_active: boolean;
     created_at: string;
     updated_at: string;
+    registration_status?: string | null;
     stadium: Partial<Stadium>;
+}
+
+export interface TournamentRegistration {
+    id: number;
+    user_id: number;
+    tournament_id: number;
+    status: 'in_progress' | 'paid' | 'cancelled';
+    paid_at: string | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    message?: string;
+}
+
+export interface ClubStatus {
+    registered: boolean;
+    paid: boolean;
+    status: string | null;
+    club_id: number | null;
+    club_name: string | null;
+    type: 'solo' | 'club' | null;
+}
+
+export interface Club {
+    id: number;
+    name: string;
+    avatar_url?: string;
+    tournament_id: number;
+    creator_id: number;
+    member_count: number;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    members?: ClubMember[];
+}
+
+export interface ClubMember {
+    id: number;
+    user_id: number;
+    user_phone: string;
+    user_fullname: string;
+}
+
+export interface ClubsResponse {
+    clubs: Club[];
+    solo_players: { user_id: number; user_phone: string; user_fullname: string }[];
 }
 
 const BASE_URL = 'https://stadio-backend-pythoon-production.up.railway.app/api/v1';
@@ -504,4 +555,97 @@ export const fetchMedia = async (token: string, skip: number = 0, limit: number 
     return response.json();
 };
 
+// Tournament Registration & Clubs
 
+export const fetchTournamentById = async (token: string, id: number): Promise<Tournament> => {
+    const headers: Record<string, string> = { 'Authorization': `Bearer ${token}` };
+    const response = await fetch(`${BASE_URL}/client/tournaments/${id}`, { headers });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || 'Failed to fetch tournament');
+    }
+    return response.json();
+};
+
+export const registerForTournament = async (token: string, tournamentId: number): Promise<TournamentRegistration> => {
+    const response = await fetch(`${BASE_URL}/client/tournaments/${tournamentId}/register`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || 'Failed to register');
+    }
+    return response.json();
+};
+
+export const fetchMyRegistrations = async (token: string, statusFilter?: string): Promise<TournamentRegistration[]> => {
+    const url = new URL(`${BASE_URL}/client/tournaments/registrations`);
+    if (statusFilter) url.searchParams.append('status_filter', statusFilter);
+    const response = await fetch(url.toString(), {
+        headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error('Failed to fetch registrations');
+    return response.json();
+};
+
+export const fetchClubs = async (token: string, tournamentId: number): Promise<ClubsResponse> => {
+    const response = await fetch(`${BASE_URL}/client/clubs/?tournament_id=${tournamentId}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error('Failed to fetch clubs');
+    return response.json();
+};
+
+export const fetchMyClubStatus = async (token: string, tournamentId: number): Promise<ClubStatus> => {
+    const response = await fetch(`${BASE_URL}/client/clubs/my-status?tournament_id=${tournamentId}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error('Failed to fetch club status');
+    return response.json();
+};
+
+export const createClub = async (token: string, data: { name: string; password: string; tournament_id: number; avatar_url?: string }): Promise<Club> => {
+    const response = await fetch(`${BASE_URL}/client/clubs/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || 'Failed to create club');
+    }
+    return response.json();
+};
+
+export const joinClub = async (token: string, clubId: number, password: string): Promise<Club> => {
+    const response = await fetch(`${BASE_URL}/client/clubs/${clubId}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ password }),
+    });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || 'Failed to join club');
+    }
+    return response.json();
+};
+
+export const leaveClub = async (token: string, clubId: number): Promise<void> => {
+    const response = await fetch(`${BASE_URL}/client/clubs/${clubId}/leave`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || 'Failed to leave club');
+    }
+};
+
+export const fetchClubDetail = async (token: string, clubId: number): Promise<Club> => {
+    const response = await fetch(`${BASE_URL}/client/clubs/${clubId}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error('Failed to fetch club');
+    return response.json();
+};

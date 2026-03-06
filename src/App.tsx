@@ -10,6 +10,7 @@ import Bookings from "./pages/Bookings";
 import Auth from "./pages/Auth";
 import Stadiums from "./pages/Stadiums";
 import Tournaments from "./pages/Tournaments";
+import TournamentDetail from "./pages/TournamentDetail";
 import StadiumDetail from "./pages/StadiumDetail";
 import Media from "./pages/Media";
 import NotFound from "./pages/NotFound";
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/stadiums" element={<Stadiums />} />
             <Route path="/stadiums/:id" element={<StadiumDetail />} />
             <Route path="/tournaments" element={<Tournaments />} />
+            <Route path="/tournaments/:id" element={<TournamentDetail />} />
             <Route path="/media" element={<Media />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/payments/:orderId" element={<PaymentStatus />} />
