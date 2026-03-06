@@ -308,14 +308,19 @@ const StadiumDetail = () => {
                             {stadium.latitude && stadium.longitude && (
                                 <div className="space-y-4">
                                     <h2 className="text-xl font-semibold">Manzil xaritasi</h2>
-                                    <div className="rounded-2xl overflow-hidden border border-border">
+                                    <div className="rounded-2xl overflow-hidden border border-border relative">
                                         <iframe
                                             src={`https://yandex.uz/map-widget/v1/?ll=${stadium.longitude}%2C${stadium.latitude}&z=16&pt=${stadium.longitude}%2C${stadium.latitude}%2Cpm2rdm`}
                                             width="100%"
                                             height="250"
-                                            style={{ border: 0 }}
-                                            allowFullScreen
+                                            style={{ border: 0, pointerEvents: 'none' }}
                                             loading="lazy"
+                                        />
+                                        <a
+                                            href={`https://yandex.uz/maps/?pt=${stadium.longitude},${stadium.latitude}&z=16&l=map`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="absolute inset-0 z-10"
                                         />
                                     </div>
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -427,9 +432,15 @@ const StadiumDetail = () => {
                                                     </div>
                                                 </div>
 
-                                                <div className="p-6 border-t bg-background mt-auto">
+                                                <div className="p-4 border-t bg-zinc-900 dark:bg-zinc-950 mt-auto rounded-b-3xl flex items-center gap-4">
+                                                    <div className="flex flex-col min-w-0">
+                                                        <span className="text-xs text-zinc-400">Soati</span>
+                                                        <span className="text-lg font-bold text-white whitespace-nowrap">
+                                                            {stadium.price_per_hour.toLocaleString()} so'm
+                                                        </span>
+                                                    </div>
                                                     <Button
-                                                        className="w-full h-12 text-lg rounded-xl bg-primary hover:bg-primary/90"
+                                                        className="flex-1 h-12 text-lg rounded-2xl bg-primary hover:bg-primary/90"
                                                         disabled={selectedHours.length === 0 || !selectedDate || !isAuthenticated}
                                                         onClick={() => setBookingStep('confirm')}
                                                     >

@@ -41,7 +41,7 @@ const TournamentCard = ({
                 <div className="absolute top-4 left-4">
                     <div className="flex items-center gap-2 bg-primary/90 backdrop-blur-md text-primary-foreground px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
                         <Trophy className="w-3.5 h-3.5" />
-                        <span>Tournament</span>
+                        <span>Turnir</span>
                     </div>
                 </div>
 

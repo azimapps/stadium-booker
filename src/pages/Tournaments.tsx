@@ -20,7 +20,7 @@ const TournamentsPage = () => {
             <Header />
             <main className="flex-grow pt-24 pb-12">
                 <div className="container mx-auto px-4">
-                    <div className="relative mb-12 p-8 rounded-3xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/10 overflow-hidden">
+                    <div className="relative mb-12 p-8 rounded-3xl bg-card/80 border border-border/50 overflow-hidden">
                         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                             <div>
                                 <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
@@ -35,8 +35,8 @@ const TournamentsPage = () => {
                             </div>
                         </div>
                         {/* Decorative elements */}
-                        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-                        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+                        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
+                        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
                     </div>
 
                     {isLoading ? (
@@ -50,19 +50,25 @@ const TournamentsPage = () => {
                             ))}
                         </div>
                     ) : error ? (
-                        <div className="text-center py-20 bg-muted/30 rounded-3xl border-2 border-dashed border-border">
+                        <div className="text-center py-20 bg-card/50 rounded-3xl border-2 border-dashed border-border/50">
                             <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4 opacity-50" />
                             <h2 className="text-2xl font-bold mb-2">Turnirlarni yuklashda xatolik</h2>
                             <p className="text-muted-foreground">Keyinroq yana qaytadan urinib ko'ring.</p>
                         </div>
                     ) : tournaments?.length === 0 ? (
-                        <div className="text-center py-20 bg-muted/30 rounded-3xl border-2 border-dashed border-border">
+                        <div className="text-center py-20 bg-card/50 rounded-3xl border-2 border-dashed border-border/50">
                             <Trophy className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-20" />
                             <h2 className="text-2xl font-bold mb-2">Hozircha faol turnirlar yo'q</h2>
                             <p className="text-muted-foreground">Tez orada yangi turnirlar qo'shiladi.</p>
                         </div>
                     ) : (
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div className={`grid gap-6 ${
+                            (tournaments?.length ?? 0) === 1
+                                ? 'max-w-md mx-auto'
+                                : (tournaments?.length ?? 0) === 2
+                                    ? 'md:grid-cols-2 max-w-3xl mx-auto'
+                                    : 'md:grid-cols-2 lg:grid-cols-3'
+                        }`}>
                             {tournaments?.map((tournament) => (
                                 <TournamentCard
                                     key={tournament.id}

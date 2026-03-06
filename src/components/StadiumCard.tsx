@@ -66,8 +66,9 @@ const StadiumCard = ({ id, image, images = [], nameKey, locationKey, name, locat
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
           {/* Price Tag */}
-          <div className="absolute top-4 right-4 z-10 bg-background/80 backdrop-blur-md border border-white/20 text-foreground px-4 py-2 rounded-2xl text-sm font-bold shadow-xl">
-            {price.toLocaleString()} <span className="text-[10px] text-muted-foreground uppercase">{t('stadiums.perHour')}</span>
+          <div className="absolute top-4 right-4 z-10 bg-black/70 backdrop-blur-md border border-white/10 text-white px-4 py-2.5 rounded-2xl shadow-xl">
+            <span className="text-lg font-bold">{price.toLocaleString()}</span>{' '}
+            <span className="text-[10px] font-semibold tracking-widest uppercase text-white/70">soatiga</span>
           </div>
 
           {/* Indicators */}
