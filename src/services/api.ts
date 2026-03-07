@@ -133,10 +133,13 @@ export const fetchTournaments = async (): Promise<Tournament[]> => {
         const tournamentsResponse = await fetch(`${BASE_URL}/client/tournaments/`, { headers });
 
         if (!tournamentsResponse.ok) {
+            const errorText = await tournamentsResponse.text();
+            console.error("Tournaments API error:", tournamentsResponse.status, errorText);
             throw new Error(`API Error: ${tournamentsResponse.status}`);
         }
 
-        const tournaments: Tournament[] = await tournamentsResponse.json();
+        const data = await tournamentsResponse.json();
+        const tournaments: Tournament[] = Array.isArray(data) ? data : (data.results || data.data || []);
 
         return tournaments.map(tournament => {
             const stadium = stadiums.find(s => s.id === tournament.stadium_id);
@@ -147,8 +150,8 @@ export const fetchTournaments = async (): Promise<Tournament[]> => {
         });
 
     } catch (error) {
-        console.warn("Tournaments API error:", error);
-        return [];
+        console.error("Tournaments API error:", error);
+        throw error;
     }
 };
 

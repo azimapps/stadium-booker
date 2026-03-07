@@ -18,7 +18,7 @@ const TournamentsPage = () => {
     return (
         <div className="min-h-screen flex flex-col bg-background">
             <Header />
-            <main className="flex-grow pt-24 pb-12">
+            <main className="flex-grow pt-16 lg:pt-24 pb-12">
                 <div className="container mx-auto px-4">
                     <div className="relative mb-12 p-8 rounded-3xl bg-card/80 border border-border/50 overflow-hidden">
                         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">

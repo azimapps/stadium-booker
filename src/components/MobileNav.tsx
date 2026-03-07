@@ -22,7 +22,7 @@ const MobileNav = () => {
         },
         {
             name: t("nav.orders"),
-            path: "/bookings", // Placeholder path
+            path: "/bookings",
             icon: Calendar,
         },
         {

@@ -6,7 +6,7 @@ const MediaPage = () => {
     return (
         <div className="min-h-screen flex flex-col">
             <Header />
-            <main className="flex-grow pt-24">
+            <main className="flex-grow pt-16 lg:pt-24">
                 <MediaSection />
             </main>
             <Footer />

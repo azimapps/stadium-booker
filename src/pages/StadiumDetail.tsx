@@ -126,7 +126,7 @@ const StadiumDetail = () => {
         return (
             <div className="min-h-screen flex flex-col">
                 <Header />
-                <main className="flex-grow pt-24 container mx-auto px-4">
+                <main className="flex-grow pt-16 lg:pt-24 container mx-auto px-4">
                     <div className="grid lg:grid-cols-2 gap-8 mb-12">
                         <Skeleton className="h-[400px] rounded-2xl w-full" />
                         <div className="space-y-6">
@@ -150,7 +150,7 @@ const StadiumDetail = () => {
         return (
             <div className="min-h-screen flex flex-col">
                 <Header />
-                <main className="flex-grow pt-24 flex items-center justify-center">
+                <main className="flex-grow pt-16 lg:pt-24 flex items-center justify-center">
                     <div className="text-center px-4">
                         <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
                         <h1 className="text-2xl font-bold mb-2">Stadium not found</h1>
@@ -180,7 +180,7 @@ const StadiumDetail = () => {
         <div className="min-h-screen flex flex-col bg-background">
             <Header />
 
-            <main className="flex-grow pt-24 pb-16">
+            <main className="flex-grow pt-16 lg:pt-24 pb-16">
                 <div className="container mx-auto px-4">
                     {/* Back button */}
                     <Button

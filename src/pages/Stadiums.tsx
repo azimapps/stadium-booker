@@ -17,7 +17,7 @@ const StadiumsPage = () => {
     return (
         <div className="min-h-screen flex flex-col bg-background">
             <Header />
-            <main className="flex-grow pt-24 pb-12">
+            <main className="flex-grow pt-16 lg:pt-24 pb-12">
                 <div className="container mx-auto px-4">
                     <div className="mb-12">
                         <h1 className="text-4xl font-bold text-foreground mb-4">

@@ -57,7 +57,7 @@ const TournamentsSection = () => {
                                 stadiumAddress={language === 'uz' ? tournament.stadium?.address_uz || '' : tournament.stadium?.address_ru || ''}
                                 startTime={tournament.start_time}
                                 entranceFee={tournament.entrance_fee}
-                                image={tournament.stadium?.main_image || ''}
+                                image={tournament.cover_image || tournament.stadium?.main_image || ''}
                             />
                         ))}
                     </div>

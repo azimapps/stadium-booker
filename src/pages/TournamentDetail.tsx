@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import {
     fetchTournamentById, registerForTournament, fetchMyClubStatus,
     fetchClubs, createClub, joinClub, leaveClub, fetchClubDetail,
-    createPaymeOrder, createClickOrder,
+    createPaymeOrder, createClickOrder, fetchMyRegistrations,
     Club, ClubStatus, ClubsResponse,
 } from '@/services/api';
 import {
@@ -130,13 +130,8 @@ const TournamentDetail = () => {
         if (!token || !myStatus) return;
         setPaymentLoading(method);
         try {
-            // We need the registration ID — fetch registrations to find it
-            const regsResponse = await fetch(
-                `https://stadio-backend-pythoon-production.up.railway.app/api/v1/client/tournaments/registrations`,
-                { headers: { 'Authorization': `Bearer ${token}` } }
-            );
-            const regs = await regsResponse.json();
-            const myReg = regs.find((r: any) => r.tournament_id === tournamentId && r.status === 'in_progress');
+            const regs = await fetchMyRegistrations(token, 'in_progress');
+            const myReg = regs.find((r) => r.tournament_id === tournamentId && r.status === 'in_progress');
             if (!myReg) {
                 toast.error("Ro'yxatdan topilmadi");
                 setPaymentLoading(null);
@@ -146,10 +141,20 @@ const TournamentDetail = () => {
             const orderData = { tournament_registration_id: myReg.id };
             if (method === 'payme') {
                 const order = await createPaymeOrder(token, orderData);
-                window.location.href = order.checkout_url!;
+                if (!order.checkout_url) {
+                    toast.error("To'lov havolasi topilmadi");
+                    setPaymentLoading(null);
+                    return;
+                }
+                window.location.href = order.checkout_url;
             } else {
                 const order = await createClickOrder(token, orderData);
-                window.location.href = order.payment_url!;
+                if (!order.payment_url) {
+                    toast.error("To'lov havolasi topilmadi");
+                    setPaymentLoading(null);
+                    return;
+                }
+                window.location.href = order.payment_url;
             }
         } catch (err: any) {
             toast.error(err.message || "To'lov xatosi");
@@ -163,7 +168,7 @@ const TournamentDetail = () => {
         return (
             <div className="min-h-screen flex flex-col bg-background">
                 <Header />
-                <main className="flex-grow pt-24 container mx-auto px-4 max-w-3xl">
+                <main className="flex-grow pt-16 lg:pt-24 container mx-auto px-4 max-w-3xl">
                     <Skeleton className="h-64 rounded-2xl w-full mb-6" />
                     <Skeleton className="h-8 w-3/4 mb-4" />
                     <Skeleton className="h-6 w-1/2 mb-4" />
@@ -178,7 +183,7 @@ const TournamentDetail = () => {
         return (
             <div className="min-h-screen flex flex-col bg-background">
                 <Header />
-                <main className="flex-grow pt-24 flex items-center justify-center">
+                <main className="flex-grow pt-16 lg:pt-24 flex items-center justify-center">
                     <div className="text-center px-4">
                         <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
                         <h1 className="text-2xl font-bold mb-2">Turnir topilmadi</h1>
@@ -199,7 +204,7 @@ const TournamentDetail = () => {
     return (
         <div className="min-h-screen flex flex-col bg-background">
             <Header />
-            <main className="flex-grow pt-24 pb-16">
+            <main className="flex-grow pt-16 lg:pt-24 pb-16">
                 <div className="container mx-auto px-4 max-w-3xl">
                     {/* Back */}
                     <Button variant="ghost" className="mb-4 gap-2 -ml-4" onClick={() => navigate(-1)}>
@@ -432,23 +437,49 @@ const TournamentDetail = () => {
 
             {/* Payment Dialog */}
             <Dialog open={paymentOpen} onOpenChange={(open) => { if (!open) { setPaymentOpen(false); setPaymentLoading(null); } }}>
-                <DialogContent className="sm:max-w-[400px] rounded-3xl p-0 overflow-hidden gap-0">
-                    <DialogHeader className="px-6 pt-6 pb-4">
+                <DialogContent className="sm:max-w-[420px] rounded-3xl p-0 overflow-hidden gap-0">
+                    <DialogHeader className="px-6 pt-6 pb-3">
                         <DialogTitle className="text-xl font-bold text-center">To'lov usulini tanlang</DialogTitle>
                     </DialogHeader>
+
+                    {/* Tournament info */}
                     <div className="px-6 pb-2">
+                        {coverImage && (
+                            <div className="relative rounded-xl overflow-hidden mb-3 aspect-[2.5/1]">
+                                <img src={coverImage} alt={displayTitle} className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                                <div className="absolute bottom-2 left-3">
+                                    <p className="text-white font-bold text-sm">{displayTitle}</p>
+                                </div>
+                            </div>
+                        )}
                         <div className="bg-muted/20 rounded-xl p-4 space-y-2 text-sm">
+                            {!coverImage && (
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Turnir</span>
+                                    <span className="font-medium">{displayTitle}</span>
+                                </div>
+                            )}
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Turnir</span>
-                                <span className="font-medium">{displayTitle}</span>
+                                <span className="text-muted-foreground">Stadion</span>
+                                <span className="font-medium truncate ml-4">{stadiumName}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Summa</span>
+                                <span className="text-muted-foreground">Sana</span>
+                                <span className="font-medium">{format(new Date(tournament.start_time), 'dd.MM.yyyy HH:mm')}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Jamoa hajmi</span>
+                                <span className="font-medium">{tournament.min_players_per_team}–{tournament.max_players_per_team} kishi</span>
+                            </div>
+                            <div className="flex justify-between border-t border-border/50 pt-2 mt-2">
+                                <span className="text-muted-foreground font-semibold">Summa</span>
                                 <span className="font-bold text-primary">{tournament.entrance_fee.toLocaleString()} so'm</span>
                             </div>
                         </div>
                     </div>
-                    <div className="px-6 pb-6 pt-2 space-y-3">
+
+                    <div className="px-6 pb-6 pt-3 space-y-3">
                         <button
                             onClick={() => handlePayment('payme')}
                             disabled={paymentLoading !== null}
