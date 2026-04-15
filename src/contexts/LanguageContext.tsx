@@ -63,6 +63,7 @@ export const translations: Translations = {
   'stadiums.open247': { uz: '24/7 ochiq', ru: 'Открыто 24/7' },
   'stadiums.freeParking': { uz: 'Bepul turargoh', ru: 'Бесплатная парковка' },
   'booking.title': { uz: 'Maydonni band qilish', ru: 'Бронирование поля' },
+  'booking.available_hours': { uz: 'Mavjud soatlar', ru: 'Доступные часы' },
   'booking.date': { uz: 'Sanani tanlang', ru: 'Выберите дату' },
   'booking.time': { uz: 'Vaqtni tanlang', ru: 'Выберите время' },
   'booking.confirm': { uz: 'Tasdiqlash', ru: 'Подтвердить' },

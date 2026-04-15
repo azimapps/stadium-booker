@@ -389,7 +389,7 @@ const StadiumDetail = () => {
                                                                     const isBooked = availability?.booked_hours?.includes(hour);
                                                                     const isSelected = selectedHours.includes(hour);
                                                                     const isDiscount = availability?.discount_hours?.includes(hour);
-                                                                    const timeLabel = `${hour.toString().padStart(2, '0')}:00`;
+                                                                    const timeLabel = `${hour.toString().padStart(2, '0')}:00 - ${(hour + 1).toString().padStart(2, '0')}:00`;
 
                                                                     return (
                                                                         <button
@@ -470,7 +470,7 @@ const StadiumDetail = () => {
                                                                 const price = isDiscount ? availability!.discount_price : stadium.price_per_hour;
                                                                 return (
                                                                     <div key={h} className="flex justify-between items-center text-sm">
-                                                                        <span className="font-mono text-base text-primary">{h.toString().padStart(2, '0')}:00</span>
+                                                                        <span className="font-mono text-base text-primary">{h.toString().padStart(2, '0')}:00 - {(h + 1).toString().padStart(2, '0')}:00</span>
                                                                         <div className="flex items-center gap-2">
                                                                             {isDiscount && (
                                                                                 <span className="text-xs line-through text-muted-foreground">{stadium.price_per_hour.toLocaleString()}</span>
