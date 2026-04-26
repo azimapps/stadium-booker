@@ -69,6 +69,7 @@ const StadiumDetail = () => {
         onSuccess: () => {
             setBookingStep('success');
             queryClient.invalidateQueries({ queryKey: ['availability', id, formattedDate] });
+            queryClient.invalidateQueries({ queryKey: ['my-bookings'] });
         },
         onError: (error: Error) => {
             toast.error(error.message || t('booking.error'));

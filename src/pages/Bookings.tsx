@@ -120,15 +120,10 @@ const Bookings = () => {
         queryFn: () => fetchStadiums(),
     });
 
-    // Enrich bookings with full stadium data (including address) and filter out started ones
+    // Enrich bookings with full stadium data (including address)
     const bookings = bookingsRaw?.map(booking => {
         const fullStadium = stadiums?.find(s => s.id === booking.stadium_id);
         return fullStadium ? { ...booking, stadium: { ...booking.stadium, ...fullStadium } } : booking;
-    }).filter(booking => {
-        if (!booking.date || !booking.hours || booking.hours.length === 0) return true;
-        const startHour = Math.min(...booking.hours);
-        const startTime = new Date(`${booking.date}T${startHour.toString().padStart(2, '0')}:00:00`);
-        return startTime.getTime() > Date.now();
     });
 
     useEffect(() => {
