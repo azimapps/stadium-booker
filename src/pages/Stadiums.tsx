@@ -44,7 +44,7 @@ const StadiumsPage = () => {
                         </div>
                     ) : (
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {stadiums?.map((stadium) => (
+                            {stadiums?.filter((stadium) => stadium.is_active).map((stadium) => (
                                 <StadiumCard
                                     key={stadium.id}
                                     id={stadium.id}

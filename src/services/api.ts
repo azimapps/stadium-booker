@@ -20,6 +20,7 @@ export interface Stadium {
     phone: string[];
     main_image: string;
     images: string[];
+    is_active: boolean;
 }
 
 export interface Tournament {
