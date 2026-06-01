@@ -653,3 +653,283 @@ export const fetchClubDetail = async (token: string, clubId: number): Promise<Cl
     if (!response.ok) throw new Error('Failed to fetch club');
     return response.json();
 };
+
+// ============================================================
+// MARKETPLACE
+// ============================================================
+
+export interface ProductSize {
+    id: number;
+    size_label: string;
+    hint_label: string;
+    stock: number;
+}
+
+export type ProductStatus = 'active' | 'hidden' | 'sold_out';
+
+export interface Product {
+    id: number;
+    title: string;
+    description: string;
+    images: string[];
+    price: number;
+    prepayment_amount: number;
+    category: string;
+    likes_count: number;
+    status: ProductStatus;
+    sizes: ProductSize[];
+    is_liked_by_me: boolean;
+    total_stock: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export type ProductSort = 'newest' | 'likes' | 'price_asc' | 'price_desc';
+
+export interface ListProductsParams {
+    search?: string;
+    category?: string;
+    sort?: ProductSort;
+    in_stock_only?: boolean;
+    limit?: number;
+    offset?: number;
+}
+
+const MARKETPLACE_BASE = `${BASE_URL}/client/marketplace`;
+
+export const fetchProducts = async (token: string | null, params: ListProductsParams = {}): Promise<Product[]> => {
+    const url = new URL(`${MARKETPLACE_BASE}/products`);
+    if (params.search) url.searchParams.append('search', params.search);
+    if (params.category) url.searchParams.append('category', params.category);
+    if (params.sort) url.searchParams.append('sort', params.sort);
+    if (params.in_stock_only) url.searchParams.append('in_stock_only', 'true');
+    if (params.limit != null) url.searchParams.append('limit', params.limit.toString());
+    if (params.offset != null) url.searchParams.append('offset', params.offset.toString());
+
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const response = await fetch(url.toString(), { headers });
+    if (!response.ok) throw new Error('Failed to fetch products');
+    return response.json();
+};
+
+export const fetchProductById = async (token: string | null, productId: number): Promise<Product> => {
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const response = await fetch(`${MARKETPLACE_BASE}/products/${productId}`, { headers });
+    if (response.status === 404) throw new Error('NOT_FOUND');
+    if (!response.ok) throw new Error('Failed to fetch product');
+    return response.json();
+};
+
+export const toggleProductLike = async (token: string, productId: number): Promise<{ liked: boolean; likes_count: number }> => {
+    const response = await fetch(`${MARKETPLACE_BASE}/products/${productId}/like`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (response.status === 401) throw new Error('UNAUTHORIZED');
+    if (!response.ok) throw new Error('Failed to toggle like');
+    return response.json();
+};
+
+// ---------- Cart ----------
+
+export interface CartItem {
+    id: number;
+    product_id: number;
+    product_size_id: number;
+    quantity: number;
+    product_title: string;
+    product_image: string;
+    size_label: string;
+    unit_price: number;
+    prepayment_per_unit: number;
+    line_total: number;
+    line_prepayment: number;
+    available_stock: number;
+    is_available: boolean;
+}
+
+export interface Cart {
+    items: CartItem[];
+    items_total: number;
+    prepayment_total: number;
+    has_unavailable: boolean;
+}
+
+export const fetchCart = async (token: string): Promise<Cart> => {
+    const response = await fetch(`${MARKETPLACE_BASE}/cart`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (response.status === 401) throw new Error('UNAUTHORIZED');
+    if (!response.ok) throw new Error('Failed to fetch cart');
+    return response.json();
+};
+
+export const addToCart = async (token: string, data: { product_id: number; product_size_id: number; quantity: number }): Promise<Cart> => {
+    const response = await fetch(`${MARKETPLACE_BASE}/cart`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(data),
+    });
+    if (response.status === 401) throw new Error('UNAUTHORIZED');
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || 'Failed to add to cart');
+    }
+    return response.json();
+};
+
+export const updateCartItem = async (token: string, itemId: number, quantity: number): Promise<Cart> => {
+    const response = await fetch(`${MARKETPLACE_BASE}/cart/${itemId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ quantity }),
+    });
+    if (response.status === 401) throw new Error('UNAUTHORIZED');
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || 'Failed to update cart item');
+    }
+    return response.json();
+};
+
+export const removeCartItem = async (token: string, itemId: number): Promise<Cart> => {
+    const response = await fetch(`${MARKETPLACE_BASE}/cart/${itemId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (response.status === 401) throw new Error('UNAUTHORIZED');
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || 'Failed to remove cart item');
+    }
+    return response.json();
+};
+
+// ---------- Orders / Checkout ----------
+
+export type MarketplaceOrderStatus =
+    | 'awaiting_prepayment'
+    | 'prepaid'
+    | 'confirmed'
+    | 'delivery_sent'
+    | 'delivery_completed'
+    | 'cancelled';
+
+export interface MarketplaceOrderItem {
+    id: number;
+    product_id: number;
+    product_size_id: number;
+    quantity: number;
+    unit_price: number;
+    prepayment_per_unit: number;
+    product_title: string;
+    size_label: string;
+    product_image: string;
+    line_total: number;
+    line_prepayment: number;
+}
+
+export interface MarketplaceOrder {
+    id: number;
+    user_id: number;
+    buyer_phone: string;
+    buyer_fullname: string;
+    address_text: string;
+    address_lat: number;
+    address_lng: number;
+    items_total: number;
+    prepayment_total: number;
+    delivery_fee: number | null;
+    paid_amount: number;
+    total_price: number | null;
+    remaining_amount: number | null;
+    status: MarketplaceOrderStatus;
+    payment_deadline: string | null;
+    prepaid_at: string | null;
+    confirmed_at: string | null;
+    delivery_sent_at: string | null;
+    delivery_completed_at: string | null;
+    cancelled_at: string | null;
+    admin_notes: string | null;
+    needs_refund: boolean;
+    items: MarketplaceOrderItem[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CheckoutResponse {
+    order_id: number;
+    items_total: number;
+    prepayment_total: number;
+    payment_deadline: string;
+    payme_url: string;
+    click_url: string;
+}
+
+export interface CheckoutRequest {
+    address_text: string;
+    address_lat: number;
+    address_lng: number;
+}
+
+export interface CheckoutOutOfStockError {
+    error: 'out_of_stock';
+    removed_items: { product_title: string; size_label: string; reason: 'out_of_stock' | 'unavailable' }[];
+}
+
+export class OutOfStockError extends Error {
+    detail: CheckoutOutOfStockError;
+    constructor(detail: CheckoutOutOfStockError) {
+        super('out_of_stock');
+        this.detail = detail;
+    }
+}
+
+export const checkoutCart = async (token: string, data: CheckoutRequest): Promise<CheckoutResponse> => {
+    const response = await fetch(`${MARKETPLACE_BASE}/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(data),
+    });
+    if (response.status === 401) throw new Error('UNAUTHORIZED');
+    if (response.status === 400) {
+        const err = await response.json().catch(() => ({}));
+        const detail = err?.detail;
+        if (detail && typeof detail === 'object' && detail.error === 'out_of_stock') {
+            throw new OutOfStockError(detail as CheckoutOutOfStockError);
+        }
+        throw new Error(typeof detail === 'string' ? detail : 'Checkout failed');
+    }
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || 'Checkout failed');
+    }
+    return response.json();
+};
+
+export const fetchMyMarketplaceOrders = async (token: string, status?: MarketplaceOrderStatus, params: { limit?: number; offset?: number } = {}): Promise<MarketplaceOrder[]> => {
+    const url = new URL(`${MARKETPLACE_BASE}/orders`);
+    if (status) url.searchParams.append('status', status);
+    if (params.limit != null) url.searchParams.append('limit', params.limit.toString());
+    if (params.offset != null) url.searchParams.append('offset', params.offset.toString());
+
+    const response = await fetch(url.toString(), {
+        headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (response.status === 401) throw new Error('UNAUTHORIZED');
+    if (!response.ok) throw new Error('Failed to fetch orders');
+    return response.json();
+};
+
+export const fetchMarketplaceOrderById = async (token: string, orderId: number): Promise<MarketplaceOrder> => {
+    const response = await fetch(`${MARKETPLACE_BASE}/orders/${orderId}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (response.status === 401) throw new Error('UNAUTHORIZED');
+    if (response.status === 404) throw new Error('NOT_FOUND');
+    if (!response.ok) throw new Error('Failed to fetch order');
+    return response.json();
+};

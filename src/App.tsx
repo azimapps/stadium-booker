@@ -16,6 +16,12 @@ import Media from "./pages/Media";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
 import PaymentStatus from "./pages/PaymentStatus";
+import Marketplace from "./pages/Marketplace";
+import ProductDetail from "./pages/ProductDetail";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
+import MarketplaceOrders from "./pages/MarketplaceOrders";
+import MarketplaceOrderDetail from "./pages/MarketplaceOrderDetail";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +43,12 @@ const App = () => (
             <Route path="/media" element={<Media />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/payments/:orderId" element={<PaymentStatus />} />
+            <Route path="/marketplace" element={<Marketplace />} />
+            <Route path="/marketplace/products/:id" element={<ProductDetail />} />
+            <Route path="/marketplace/cart" element={<Cart />} />
+            <Route path="/marketplace/checkout" element={<Checkout />} />
+            <Route path="/marketplace/orders" element={<MarketplaceOrders />} />
+            <Route path="/marketplace/orders/:id" element={<MarketplaceOrderDetail />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

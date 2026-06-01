@@ -1,6 +1,6 @@
 import { useLocation, Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Home, Calendar, PlaySquare, User } from "lucide-react";
+import { Home, Calendar, PlaySquare, ShoppingBag, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,6 +19,11 @@ const MobileNav = () => {
             name: t("nav.home"),
             path: "/",
             icon: Home,
+        },
+        {
+            name: t("nav.marketplace"),
+            path: "/marketplace",
+            icon: ShoppingBag,
         },
         {
             name: t("nav.orders"),
@@ -52,7 +57,9 @@ const MobileNav = () => {
         <div className="fixed bottom-2 left-2 right-2 z-50 lg:hidden">
             <div className="flex items-center justify-around bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-1 h-16">
                 {items.map((item) => {
-                    const isActive = location.pathname === item.path;
+                    const isActive = item.path === "/"
+                        ? location.pathname === "/"
+                        : location.pathname === item.path || location.pathname.startsWith(item.path + "/");
                     return (
                         <Link
                             key={item.path}

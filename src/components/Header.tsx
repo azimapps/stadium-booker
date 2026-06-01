@@ -57,6 +57,7 @@ const Header = () => {
         <nav className="hidden lg:flex items-center gap-10">
           {[
             { name: t('nav.home'), to: '/', show: true },
+            { name: t('nav.marketplace'), to: '/marketplace', show: true },
             { name: t('nav.orders'), to: '/bookings', show: isAuthenticated },
             { name: t('nav.media'), to: '/media', show: isAuthenticated },
             { name: t('nav.stadiums'), to: '/#stadiums', onClick: (e: React.MouseEvent) => handleScrollToSection(e, 'stadiums'), show: !isAuthenticated },
