@@ -154,6 +154,8 @@ export const translations: Translations = {
   'marketplace.empty': { uz: 'Mahsulot topilmadi', ru: 'Товары не найдены' },
   'marketplace.loadError': { uz: 'Mahsulotlarni yuklab bo\'lmadi', ru: 'Не удалось загрузить товары' },
   'marketplace.viewCart': { uz: 'Savatchani ko\'rish', ru: 'Открыть корзину' },
+  'marketplace.inCart': { uz: 'savatchada', ru: 'в корзине' },
+  'marketplace.goToCart': { uz: 'Savatchaga o\'tish', ru: 'Перейти в корзину' },
   'marketplace.viewOrders': { uz: 'Mening buyurtmalarim', ru: 'Мои заказы' },
   'marketplace.size': { uz: 'O\'lcham', ru: 'Размер' },
   'marketplace.selectSize': { uz: 'O\'lcham tanlang', ru: 'Выберите размер' },

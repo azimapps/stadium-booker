@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -72,6 +72,26 @@ const Cart = () => {
             await removeMutation.mutateAsync(id);
         }
     };
+
+    // Auto-clamp items whose quantity exceeds available stock (stock > 0).
+    // Tracks attempted (itemId, target qty) pairs so we don't loop on persistent mismatches.
+    const autoClampRef = useRef<Set<string>>(new Set());
+    useEffect(() => {
+        if (!cart || !token) return;
+        cart.items.forEach(item => {
+            if (
+                !item.is_available &&
+                item.available_stock > 0 &&
+                item.quantity > item.available_stock
+            ) {
+                const key = `${item.id}:${item.available_stock}`;
+                if (autoClampRef.current.has(key)) return;
+                autoClampRef.current.add(key);
+                updateMutation.mutate({ itemId: item.id, quantity: item.available_stock });
+            }
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [cart, token]);
 
     if (!isAuthenticated) {
         return (

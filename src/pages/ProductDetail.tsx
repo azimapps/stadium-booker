@@ -60,16 +60,8 @@ const ProductDetail = () => {
         [product, selectedSizeId]
     );
 
-    const maxQty = selectedSize?.stock ?? 0;
-    useEffect(() => {
-        if (maxQty <= 0) {
-            if (quantity !== 1) setQuantity(1);
-            return;
-        }
-        if (quantity > maxQty) setQuantity(maxQty);
-    }, [maxQty, quantity]);
-
-    const sizeOutOfStock = !selectedSize || selectedSize.stock === 0;
+    const sizeStock = selectedSize?.stock ?? 0;
+    const sizeOutOfStock = !selectedSize || sizeStock === 0;
 
     const addMutation = useMutation({
         mutationFn: () => {
@@ -126,6 +118,26 @@ const ProductDetail = () => {
         enabled: !!token,
     });
     const cartCount = cart?.items.reduce((s, i) => s + i.quantity, 0) ?? 0;
+
+    // How many of this product+size are already in the cart
+    const inCartQty = useMemo(() => {
+        if (!cart || !selectedSize) return 0;
+        return cart.items
+            .filter(i => i.product_id === product?.id && i.product_size_id === selectedSize.id)
+            .reduce((s, i) => s + i.quantity, 0);
+    }, [cart, product?.id, selectedSize]);
+
+    // Max we can still add, given what's already in cart
+    const maxQty = Math.max(0, sizeStock - inCartQty);
+    const fullyInCart = !sizeOutOfStock && maxQty === 0;
+
+    useEffect(() => {
+        if (maxQty <= 0) {
+            if (quantity !== 1) setQuantity(1);
+            return;
+        }
+        if (quantity > maxQty) setQuantity(maxQty);
+    }, [maxQty, quantity]);
 
     if (isLoading) {
         return (
@@ -325,8 +337,28 @@ const ProductDetail = () => {
                                 </div>
                             )}
 
+                            {/* In-cart hint */}
+                            {!sizeOutOfStock && inCartQty > 0 && (
+                                <div className="mb-4 flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-secondary/60 border border-border">
+                                    <div className="flex items-center gap-2 text-sm font-medium">
+                                        <ShoppingBag className="w-4 h-4 text-primary" />
+                                        <span>
+                                            <span className="font-mono font-bold text-foreground">{inCartQty}</span>
+                                            <span className="text-muted-foreground"> / {sizeStock}</span>
+                                            <span className="text-muted-foreground"> {t('marketplace.inCart')}</span>
+                                        </span>
+                                    </div>
+                                    <Link
+                                        to="/marketplace/cart"
+                                        className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary hover:underline"
+                                    >
+                                        {t('marketplace.viewCart')}
+                                    </Link>
+                                </div>
+                            )}
+
                             {/* Quantity stepper */}
-                            {!outOfStock && selectedSize && !sizeOutOfStock && (
+                            {!outOfStock && selectedSize && !sizeOutOfStock && !fullyInCart && (
                                 <div className="mb-8 flex items-center justify-between">
                                     <div>
                                         <div className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
@@ -358,27 +390,38 @@ const ProductDetail = () => {
 
                             {/* CTA */}
                             <div className="space-y-3">
-                                <button
-                                    onClick={() => addMutation.mutate()}
-                                    disabled={outOfStock || sizeOutOfStock || !selectedSize || addMutation.isPending}
-                                    className={cn(
-                                        'w-full h-14 rounded-full flex items-center justify-center gap-3 font-bold transition-all',
-                                        (outOfStock || sizeOutOfStock)
-                                            ? 'bg-muted text-muted-foreground cursor-not-allowed'
-                                            : 'bg-foreground text-background hover:bg-foreground/90 active:scale-[0.99] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.4)]'
-                                    )}
-                                >
-                                    {addMutation.isPending ? (
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                    ) : (
-                                        <>
-                                            <ShoppingBag className="w-5 h-5" />
-                                            {(outOfStock || sizeOutOfStock) ? t('marketplace.outOfStock') : t('marketplace.addToCart')}
-                                        </>
-                                    )}
-                                </button>
+                                {fullyInCart ? (
+                                    <Link
+                                        to="/marketplace/cart"
+                                        className="w-full h-14 rounded-full flex items-center justify-center gap-3 font-bold transition-all bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.99] shadow-[0_10px_30px_-10px_rgba(34,197,94,0.4)]"
+                                    >
+                                        <Check className="w-5 h-5" />
+                                        {t('marketplace.goToCart')}
+                                        <ArrowLeft className="w-4 h-4 rotate-180" />
+                                    </Link>
+                                ) : (
+                                    <button
+                                        onClick={() => addMutation.mutate()}
+                                        disabled={outOfStock || sizeOutOfStock || !selectedSize || addMutation.isPending}
+                                        className={cn(
+                                            'w-full h-14 rounded-full flex items-center justify-center gap-3 font-bold transition-all',
+                                            (outOfStock || sizeOutOfStock)
+                                                ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                                                : 'bg-foreground text-background hover:bg-foreground/90 active:scale-[0.99] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.4)]'
+                                        )}
+                                    >
+                                        {addMutation.isPending ? (
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                        ) : (
+                                            <>
+                                                <ShoppingBag className="w-5 h-5" />
+                                                {(outOfStock || sizeOutOfStock) ? t('marketplace.outOfStock') : t('marketplace.addToCart')}
+                                            </>
+                                        )}
+                                    </button>
+                                )}
 
-                                {cartCount > 0 && (
+                                {!fullyInCart && cartCount > 0 && (
                                     <Link
                                         to="/marketplace/cart"
                                         className="w-full h-12 rounded-full border border-border flex items-center justify-center gap-2 text-sm font-bold hover:bg-secondary/60 transition-colors"
