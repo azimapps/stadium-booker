@@ -60,10 +60,16 @@ const ProductDetail = () => {
         [product, selectedSizeId]
     );
 
-    const maxQty = selectedSize?.stock ?? 1;
+    const maxQty = selectedSize?.stock ?? 0;
     useEffect(() => {
-        if (quantity > maxQty) setQuantity(Math.max(1, maxQty));
+        if (maxQty <= 0) {
+            if (quantity !== 1) setQuantity(1);
+            return;
+        }
+        if (quantity > maxQty) setQuantity(maxQty);
     }, [maxQty, quantity]);
+
+    const sizeOutOfStock = !selectedSize || selectedSize.stock === 0;
 
     const addMutation = useMutation({
         mutationFn: () => {
@@ -320,10 +326,15 @@ const ProductDetail = () => {
                             )}
 
                             {/* Quantity stepper */}
-                            {!outOfStock && selectedSize && (
+                            {!outOfStock && selectedSize && !sizeOutOfStock && (
                                 <div className="mb-8 flex items-center justify-between">
-                                    <div className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
-                                        {t('cart.quantity')}
+                                    <div>
+                                        <div className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+                                            {t('cart.quantity')}
+                                        </div>
+                                        <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/80 mt-1">
+                                            max <span className="font-mono text-foreground">{maxQty}</span>
+                                        </div>
                                     </div>
                                     <div className="flex items-center gap-3 bg-secondary/60 rounded-full p-1">
                                         <button
@@ -349,10 +360,10 @@ const ProductDetail = () => {
                             <div className="space-y-3">
                                 <button
                                     onClick={() => addMutation.mutate()}
-                                    disabled={outOfStock || !selectedSize || addMutation.isPending}
+                                    disabled={outOfStock || sizeOutOfStock || !selectedSize || addMutation.isPending}
                                     className={cn(
                                         'w-full h-14 rounded-full flex items-center justify-center gap-3 font-bold transition-all',
-                                        outOfStock
+                                        (outOfStock || sizeOutOfStock)
                                             ? 'bg-muted text-muted-foreground cursor-not-allowed'
                                             : 'bg-foreground text-background hover:bg-foreground/90 active:scale-[0.99] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.4)]'
                                     )}
@@ -362,7 +373,7 @@ const ProductDetail = () => {
                                     ) : (
                                         <>
                                             <ShoppingBag className="w-5 h-5" />
-                                            {outOfStock ? t('marketplace.outOfStock') : t('marketplace.addToCart')}
+                                            {(outOfStock || sizeOutOfStock) ? t('marketplace.outOfStock') : t('marketplace.addToCart')}
                                         </>
                                     )}
                                 </button>

@@ -129,6 +129,12 @@ export const translations: Translations = {
   'common.continue': { uz: 'Davom etish', ru: 'Продолжить' },
   'common.close': { uz: 'Yopish', ru: 'Закрыть' },
 
+  // Orders tabs
+  'orders.stadium': { uz: 'Stadion', ru: 'Стадион' },
+  'orders.shop': { uz: 'Do\'kon', ru: 'Магазин' },
+  'orders.stadiumEmpty': { uz: 'Bandlovlar yo\'q', ru: 'Бронирований нет' },
+  'orders.stadiumEmptyDesc': { uz: 'Maydonni band qiling — bu yerda paydo bo\'ladi.', ru: 'Забронируйте поле — оно появится здесь.' },
+
   // Marketplace
   'nav.marketplace': { uz: 'Do\'kon', ru: 'Магазин' },
   'marketplace.title': { uz: 'Do\'kon', ru: 'Магазин' },
@@ -180,7 +186,7 @@ export const translations: Translations = {
   'checkout.addressHint': { uz: 'Shahar, ko\'cha, uy raqami', ru: 'Город, улица, дом' },
   'checkout.lat': { uz: 'Kenglik (lat)', ru: 'Широта (lat)' },
   'checkout.lng': { uz: 'Uzunlik (lng)', ru: 'Долгота (lng)' },
-  'checkout.coordsHint': { uz: 'Yandex.Xarita orqali aniq joyni belgilang', ru: 'Уточните точку в Яндекс.Картах' },
+  'checkout.coordsHint': { uz: 'Aniq joyni xaritadan tanlang — belgini bosing yoki suring', ru: 'Выберите точное место на карте — нажмите или перетащите метку' },
   'checkout.pay': { uz: 'To\'lash', ru: 'Оплатить' },
   'checkout.summary': { uz: 'Buyurtma xulosasi', ru: 'Сводка заказа' },
   'checkout.payNow': { uz: 'Hozir to\'lanadigan', ru: 'К оплате сейчас' },

@@ -153,7 +153,7 @@ const Marketplace = () => {
                             </div>
                             <div className="flex items-center gap-2">
                                 <Link
-                                    to="/marketplace/orders"
+                                    to="/orders?tab=shop"
                                     className="group flex items-center gap-2 h-11 px-4 rounded-full border border-border bg-background hover:bg-secondary/60 transition-colors text-sm font-medium"
                                 >
                                     <Receipt className="w-4 h-4" />

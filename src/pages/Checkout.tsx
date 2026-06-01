@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import MapPicker from '@/components/MapPicker';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import {
@@ -33,8 +34,8 @@ const Checkout = () => {
     const queryClient = useQueryClient();
 
     const [address, setAddress] = useState('');
-    const [lat, setLat] = useState('41.3275');
-    const [lng, setLng] = useState('69.2817');
+    const [lat, setLat] = useState<number>(41.3275);
+    const [lng, setLng] = useState<number>(69.2817);
     const [checkoutResp, setCheckoutResp] = useState<CheckoutResponse | null>(null);
     const [outOfStockList, setOutOfStockList] = useState<{ product_title: string; size_label: string; reason: string }[] | null>(null);
 
@@ -47,8 +48,8 @@ const Checkout = () => {
     const checkoutMutation = useMutation({
         mutationFn: () => checkoutCart(token!, {
             address_text: address.trim(),
-            address_lat: parseFloat(lat),
-            address_lng: parseFloat(lng),
+            address_lat: lat,
+            address_lng: lng,
         }),
         onSuccess: (res) => {
             setCheckoutResp(res);
@@ -65,7 +66,7 @@ const Checkout = () => {
         }
     });
 
-    const canSubmit = address.trim().length >= 3 && !!parseFloat(lat) && !!parseFloat(lng) && cart && cart.items.length > 0 && !cart.has_unavailable;
+    const canSubmit = address.trim().length >= 3 && Number.isFinite(lat) && Number.isFinite(lng) && cart && cart.items.length > 0 && !cart.has_unavailable;
 
     // If user pays, redirect, etc. Show payment chooser modal when checkoutResp is set.
 
@@ -106,6 +107,13 @@ const Checkout = () => {
                                     </div>
 
                                     <div className="space-y-4">
+                                        <MapPicker
+                                            lat={lat}
+                                            lng={lng}
+                                            onChange={(la, ln) => { setLat(la); setLng(ln); }}
+                                            height={280}
+                                        />
+
                                         <FieldGroup label={t('checkout.address')}>
                                             <textarea
                                                 value={address}
@@ -116,24 +124,6 @@ const Checkout = () => {
                                             />
                                         </FieldGroup>
 
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <FieldGroup label={t('checkout.lat')}>
-                                                <input
-                                                    value={lat}
-                                                    onChange={(e) => setLat(e.target.value)}
-                                                    inputMode="decimal"
-                                                    className="w-full h-11 px-3 rounded-xl bg-background border border-border focus:border-foreground/40 outline-none text-sm font-mono transition-colors"
-                                                />
-                                            </FieldGroup>
-                                            <FieldGroup label={t('checkout.lng')}>
-                                                <input
-                                                    value={lng}
-                                                    onChange={(e) => setLng(e.target.value)}
-                                                    inputMode="decimal"
-                                                    className="w-full h-11 px-3 rounded-xl bg-background border border-border focus:border-foreground/40 outline-none text-sm font-mono transition-colors"
-                                                />
-                                            </FieldGroup>
-                                        </div>
                                         <p className="text-[11px] text-muted-foreground italic">
                                             {t('checkout.coordsHint')}
                                         </p>

@@ -128,7 +128,7 @@ const MarketplaceOrderDetail = () => {
                     <div className="py-24 text-center">
                         <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
                         <p className="text-destructive mb-6">{t('common.error')}</p>
-                        <Link to="/marketplace/orders" className="inline-flex items-center gap-2 font-bold">
+                        <Link to="/orders?tab=shop" className="inline-flex items-center gap-2 font-bold">
                             <ArrowLeft className="w-4 h-4" />
                             {t('morders.title')}
                         </Link>
@@ -148,7 +148,7 @@ const MarketplaceOrderDetail = () => {
             <main className="flex-grow pt-16 lg:pt-24 pb-32">
                 <div className="container mx-auto px-4 max-w-4xl">
                     <Link
-                        to="/marketplace/orders"
+                        to="/orders?tab=shop"
                         className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors mb-6"
                     >
                         <ArrowLeft className="w-3.5 h-3.5" />

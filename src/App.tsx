@@ -3,10 +3,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
-import Bookings from "./pages/Bookings";
 import Auth from "./pages/Auth";
 import Stadiums from "./pages/Stadiums";
 import Tournaments from "./pages/Tournaments";
@@ -20,7 +19,7 @@ import Marketplace from "./pages/Marketplace";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
-import MarketplaceOrders from "./pages/MarketplaceOrders";
+import MyOrders from "./pages/MyOrders";
 import MarketplaceOrderDetail from "./pages/MarketplaceOrderDetail";
 
 const queryClient = new QueryClient();
@@ -34,7 +33,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/bookings" element={<Bookings />} />
+            <Route path="/bookings" element={<Navigate to="/orders?tab=stadium" replace />} />
+            <Route path="/orders" element={<MyOrders />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/stadiums" element={<Stadiums />} />
             <Route path="/stadiums/:id" element={<StadiumDetail />} />
@@ -47,7 +47,7 @@ const App = () => (
             <Route path="/marketplace/products/:id" element={<ProductDetail />} />
             <Route path="/marketplace/cart" element={<Cart />} />
             <Route path="/marketplace/checkout" element={<Checkout />} />
-            <Route path="/marketplace/orders" element={<MarketplaceOrders />} />
+            <Route path="/marketplace/orders" element={<Navigate to="/orders?tab=shop" replace />} />
             <Route path="/marketplace/orders/:id" element={<MarketplaceOrderDetail />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
