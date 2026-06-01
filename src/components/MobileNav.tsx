@@ -1,6 +1,6 @@
 import { useLocation, Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Home, Calendar, PlaySquare, ShoppingBag, User } from "lucide-react";
+import { Home, Calendar, ShoppingBag, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,11 +29,6 @@ const MobileNav = () => {
             name: t("nav.orders"),
             path: "/bookings",
             icon: Calendar,
-        },
-        {
-            name: t("nav.media"),
-            path: "/media",
-            icon: PlaySquare,
         },
         {
             name: t("nav.profile"),
